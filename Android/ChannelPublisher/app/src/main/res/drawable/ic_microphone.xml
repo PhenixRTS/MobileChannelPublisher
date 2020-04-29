@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright 2018 PhenixP2P Inc. Confidential and Proprietary. All rights reserved.
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M13,17.9488L13,21C13,21.5523 12.5523,22 12,22C11.4477,22 11,21.5523 11,21L11,17.9488C7.1159,17.5417 5,14.7718 5,12L5,9C5,8.4477 5.4477,8 6,8C6.5523,8 7,8.4477 7,9L7,12C7,12.9956 8.3954,16 12,16C15.6046,16 17,12.9987 17,12L17,9C17,8.4477 17.4477,8 18,8C18.5523,8 19,8.4477 19,9L19,12C19,14.7713 16.8841,17.5417 13,17.9488ZM12,2C13.6569,2 15,3.3431 15,5L15,11C15,12.6569 13.6569,14 12,14C10.3431,14 9,12.6569 9,11L9,5C9,3.3431 10.3431,2 12,2ZM12,4C11.4477,4 11,4.4477 11,5L11,11C11,11.5523 11.4477,12 12,12C12.5523,12 13,11.5523 13,11L13,5C13,4.4477 12.5523,4 12,4Z"
+      android:strokeWidth="1"
+      android:fillColor="#4D4D4D"
+      android:fillType="evenOdd"
+      android:strokeColor="#00000000"/>
+</vector>
