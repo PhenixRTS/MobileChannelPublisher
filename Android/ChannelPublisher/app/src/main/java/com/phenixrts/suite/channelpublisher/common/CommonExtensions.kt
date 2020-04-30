@@ -4,8 +4,12 @@
 
 package com.phenixrts.suite.channelpublisher.common
 
+import android.view.View
+import android.widget.AdapterView
+import android.widget.Spinner
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.MutableLiveData
 import com.phenixrts.suite.channelpublisher.R
 import com.phenixrts.suite.channelpublisher.common.enums.ExpressError
 import kotlin.system.exitProcess
@@ -37,4 +41,20 @@ fun AppCompatActivity.showErrorDialog(error: ExpressError) {
         }
         .create()
         .show()
+}
+
+fun Spinner.observableSelection(): MutableLiveData<Int> {
+    val selection = MutableLiveData<Int>()
+    onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        override fun onNothingSelected(parent: AdapterView<*>?) {
+            /* Ignored */
+        }
+
+        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            launchMain {
+                selection.value = position
+            }
+        }
+    }
+    return selection
 }

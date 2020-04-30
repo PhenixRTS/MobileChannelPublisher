@@ -34,11 +34,11 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:host="phenixrts.com"
-                    android:pathPrefix="/channel/"
+                    android:pathPrefix="/channel/publish/"
                     android:scheme="https" />
                 <data
                     android:host="stg.phenixrts.com"
-                    android:pathPrefix="/channel/"
+                    android:pathPrefix="/channel/publish/"
                     android:scheme="https" />
             </intent-filter>
         </activity>

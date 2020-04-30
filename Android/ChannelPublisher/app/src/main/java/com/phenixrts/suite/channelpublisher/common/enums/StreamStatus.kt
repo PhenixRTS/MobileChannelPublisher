@@ -6,5 +6,6 @@ package com.phenixrts.suite.channelpublisher.common.enums
 
 enum class StreamStatus {
     FAILED,
-    CONNECTED
+    CONNECTED,
+    DISCONNECTED
 }

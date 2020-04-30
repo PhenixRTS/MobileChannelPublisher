@@ -4,10 +4,8 @@
 
 package com.phenixrts.suite.channelpublisher.common
 
-import androidx.lifecycle.MutableLiveData
 import com.phenixrts.common.RequestStatus
 import com.phenixrts.express.*
-import com.phenixrts.pcast.Renderer
 import com.phenixrts.pcast.UserMediaOptions
 import com.phenixrts.pcast.UserMediaStream
 import com.phenixrts.room.RoomService

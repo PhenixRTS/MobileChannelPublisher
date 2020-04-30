@@ -33,6 +33,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         ChannelPublisherApplication.component.inject(this)
         setContentView(R.layout.activity_main)
+        initializeDropDowns()
 
         viewModel.onChannelExpressError.observe(this, Observer { error ->
             Timber.d("Channel Express failed: $error")
@@ -60,9 +61,7 @@ class MainActivity : AppCompatActivity() {
 
         end_stream_button.setOnClickListener {
             Timber.d("End publish button clicked")
-            showConfigurationOverlay()
             viewModel.stopPublishing()
-            viewModel.showPublisherPreview(channel_surface.holder)
         }
 
         checkDeepLink(intent)
@@ -73,6 +72,46 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         Timber.d("On new intent $intent")
         checkDeepLink(intent)
+    }
+
+    private fun initializeDropDowns() {
+        Timber.d("Initialize drop downs")
+        spinner_camera_facing.setSelection(selectedCameraFacing)
+        spinner_camera_fps.setSelection(selectedFpsOption)
+        spinner_camera_mbr.setSelection(selectedMbrOption)
+        spinner_camera_quality.setSelection(selectedQualityOption)
+        spinner_echo_cancellation.setSelection(selectedAecOption)
+        spinner_microphone.setSelection(selectedMicrophoneOption)
+
+        spinner_camera_facing.observableSelection().observe(this, Observer { index ->
+            Timber.d("Camera facing selected: $index")
+            selectedCameraFacing = index
+        })
+
+        spinner_camera_fps.observableSelection().observe(this, Observer { index ->
+            Timber.d("Camera FPS selected: $index")
+            selectedFpsOption = index
+        })
+
+        spinner_camera_mbr.observableSelection().observe(this, Observer { index ->
+            Timber.d("Camera MBR selected: $index")
+            selectedMbrOption = index
+        })
+
+        spinner_camera_quality.observableSelection().observe(this, Observer { index ->
+            Timber.d("Camera quality selected: $index")
+            selectedQualityOption = index
+        })
+
+        spinner_echo_cancellation.observableSelection().observe(this, Observer { index ->
+            Timber.d("Camera echo cancellation selected: $index")
+            selectedAecOption = index
+        })
+
+        spinner_microphone.observableSelection().observe(this, Observer { index ->
+            Timber.d("Camera microphone state selected: $index")
+            selectedMicrophoneOption = index
+        })
     }
 
     private fun showLoading() {
@@ -107,12 +146,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getPublishConfiguration(): PublishConfiguration {
-        val cameraFacing = spinner_camera_facing.getCameraFacing()
-        val cameraFps = spinner_camera_fps.getCameraFps()
-        val streamQuality = spinner_camera_resolution.getStreamQuality()
-        val capabilities = spinner_camera_mbr.getCapabilities().plus(streamQuality)
-        val echoCancellationMode = spinner_echo_cancellation.getEchoCancellation()
-        val microphoneEnabled = spinner_microphone.getMicrophoneEnabled()
+        val cameraFacing = getCameraFacing()
+        val cameraFps = getCameraFps()
+        val streamQuality = getStreamQuality()
+        val capabilities = getCapabilities().plus(streamQuality)
+        val echoCancellationMode = getEchoCancellation()
+        val microphoneEnabled = getMicrophoneEnabled()
         return PublishConfiguration(viewModel.channelAlias, cameraFacing, cameraFps, microphoneEnabled,
             echoCancellationMode, capabilities)
     }

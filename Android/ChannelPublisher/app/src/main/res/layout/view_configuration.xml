@@ -126,7 +126,7 @@
                         android:contentDescription="@null" />
 
                     <Spinner
-                        android:id="@+id/spinner_camera_resolution"
+                        android:id="@+id/spinner_camera_quality"
                         android:entries="@array/camera_resolution"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"

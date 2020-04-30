@@ -4,7 +4,6 @@
 
 package com.phenixrts.suite.channelpublisher.common
 
-import android.widget.Spinner
 import com.phenixrts.express.ChannelExpressFactory
 import com.phenixrts.express.PCastExpressFactory
 import com.phenixrts.express.PublishToChannelOptions
@@ -19,12 +18,19 @@ const val QUERY_CHANNEL = "#"
 const val QUERY_STAGING = "https://stg.phenixrts.com"
 
 private val CAMERA_OPTIONS = listOf(FacingMode.USER, FacingMode.ENVIRONMENT, FacingMode.UNDEFINED)
-private val AUDIO_OPTIONS = listOf(true, false)
+private val MICROPHONE_OPTIONS = listOf(true, false)
 private val QUALITY_OPTIONS = listOf("vvld", "vld", "ld", "sd", "hd", "fhd")
 private val FPS_OPTIONS = listOf(15, 30)
 private val AEC_OPTIONS = listOf(AudioEchoCancelationMode.AUTOMATIC, AudioEchoCancelationMode.ON, AudioEchoCancelationMode.OFF)
 private val MBR_OPTIONS = listOf(listOf(), listOf("multi-bitrate"), listOf("multi-bitrate", "multi-bitrate-codec=vp8"),
     listOf("multi-bitrate", "multi-bitrate-codec=h264"))
+
+var selectedCameraFacing = 0
+var selectedMicrophoneOption = 0
+var selectedQualityOption = 4
+var selectedFpsOption = 0
+var selectedAecOption = 1
+var selectedMbrOption = 1
 
 data class ChannelConfiguration(
     val uri: String = BuildConfig.PCAST_URL,
@@ -42,22 +48,12 @@ data class PublishConfiguration(
 
 fun getPublishToChannelOptions(configuration: PublishConfiguration, userMediaStream: UserMediaStream): PublishToChannelOptions {
     val channelOptions = RoomServiceFactory.createChannelOptionsBuilder()
+         // TODO: If name is not set - publish callback returns FAILED without any extra explanation why
         .withName(configuration.channelAlias)
+        .withAlias(configuration.channelAlias)
         .buildChannelOptions()
-    val mediaConstraints = UserMediaOptions().apply {
-        videoOptions.capabilityConstraints[DeviceCapability.FACING_MODE] =
-            listOf(DeviceConstraint(configuration.cameraFacingMode))
-        videoOptions.capabilityConstraints[DeviceCapability.FRAME_RATE] =
-            listOf(DeviceConstraint(configuration.cameraFps.toDouble()))
-        audioOptions.capabilityConstraints[DeviceCapability.AUDIO_ECHO_CANCELATION_MODE] =
-            listOf(DeviceConstraint(configuration.echoCancellationMode))
-        audioOptions.enabled = configuration.microphoneEnabled
-    }
-
     val publishOptions  = PCastExpressFactory.createPublishOptionsBuilder()
         .withCapabilities(configuration.capabilities.toTypedArray())
-        // TODO: Setting this times out the publishing process without any errors or exceptions
-        //.withMediaConstraints(mediaConstraints)
         .withUserMedia(userMediaStream)
         .buildPublishOptions()
     return ChannelExpressFactory.createPublishToChannelOptionsBuilder()
@@ -66,22 +62,36 @@ fun getPublishToChannelOptions(configuration: PublishConfiguration, userMediaStr
         .buildPublishToChannelOptions()
 }
 
-fun getUserMediaOptions(facingMode: FacingMode = FacingMode.USER): UserMediaOptions = UserMediaOptions().apply {
-    videoOptions.capabilityConstraints[DeviceCapability.FACING_MODE] = listOf(DeviceConstraint(facingMode))
+fun getUserMediaOptions(configuration: PublishConfiguration): UserMediaOptions = UserMediaOptions().apply {
+    // TODO: Changing facing mode some time crashes the app with:
+    //  JNI DETECTED ERROR IN APPLICATION: JNI GetObjectRefType called with pending exception java.lang.RuntimeException: Fail to connect to camera service
+    if (configuration.cameraFacingMode != FacingMode.UNDEFINED) {
+        videoOptions.capabilityConstraints[DeviceCapability.FACING_MODE] = listOf(DeviceConstraint(configuration.cameraFacingMode))
+    }
+    // TODO: If Height is not set to the same value as the default one (Set on app start) - then BAD_REQUEST is returned when applying options
+    videoOptions.capabilityConstraints[DeviceCapability.HEIGHT] = listOf(DeviceConstraint(360.0))
+    // TODO: Changing FPS - causes BAD_REQUEST which then causes the stream to be re-created and unusable for publishing;
+    videoOptions.capabilityConstraints[DeviceCapability.FRAME_RATE] = listOf(DeviceConstraint(configuration.cameraFps.toDouble()))
+    audioOptions.capabilityConstraints[DeviceCapability.AUDIO_ECHO_CANCELATION_MODE] = listOf(DeviceConstraint(configuration.echoCancellationMode))
+    audioOptions.enabled = configuration.microphoneEnabled
+}
+
+fun getDefaultUserMediaOptions(): UserMediaOptions = UserMediaOptions().apply {
+    videoOptions.capabilityConstraints[DeviceCapability.FACING_MODE] = listOf(DeviceConstraint(FacingMode.USER))
     videoOptions.capabilityConstraints[DeviceCapability.HEIGHT] = listOf(DeviceConstraint(360.0))
     videoOptions.capabilityConstraints[DeviceCapability.FRAME_RATE] = listOf(DeviceConstraint(15.0))
     audioOptions.capabilityConstraints[DeviceCapability.AUDIO_ECHO_CANCELATION_MODE] =
         listOf(DeviceConstraint(AudioEchoCancelationMode.ON))
 }
 
-fun Spinner.getCameraFacing(): FacingMode = CAMERA_OPTIONS[selectedItemPosition]
+fun getCameraFacing(): FacingMode = CAMERA_OPTIONS[selectedCameraFacing]
 
-fun Spinner.getMicrophoneEnabled(): Boolean = AUDIO_OPTIONS[selectedItemPosition]
+fun getMicrophoneEnabled(): Boolean = MICROPHONE_OPTIONS[selectedMicrophoneOption]
 
-fun Spinner.getCameraFps(): Int = FPS_OPTIONS[selectedItemPosition]
+fun getCameraFps(): Int = FPS_OPTIONS[selectedFpsOption]
 
-fun Spinner.getStreamQuality(): String = QUALITY_OPTIONS[selectedItemPosition]
+fun getStreamQuality(): String = QUALITY_OPTIONS[selectedQualityOption]
 
-fun Spinner.getEchoCancellation(): AudioEchoCancelationMode = AEC_OPTIONS[selectedItemPosition]
+fun getEchoCancellation(): AudioEchoCancelationMode = AEC_OPTIONS[selectedAecOption]
 
-fun Spinner.getCapabilities(): List<String> = MBR_OPTIONS[selectedItemPosition]
+fun getCapabilities(): List<String> = MBR_OPTIONS[selectedMbrOption]
