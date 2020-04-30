@@ -83,35 +83,35 @@ class MainActivity : AppCompatActivity() {
         spinner_echo_cancellation.setSelection(selectedAecOption)
         spinner_microphone.setSelection(selectedMicrophoneOption)
 
-        spinner_camera_facing.observableSelection().observe(this, Observer { index ->
+        spinner_camera_facing.onSelectionChanged { index ->
             Timber.d("Camera facing selected: $index")
             selectedCameraFacing = index
-        })
+        }
 
-        spinner_camera_fps.observableSelection().observe(this, Observer { index ->
+        spinner_camera_fps.onSelectionChanged { index ->
             Timber.d("Camera FPS selected: $index")
             selectedFpsOption = index
-        })
+        }
 
-        spinner_camera_mbr.observableSelection().observe(this, Observer { index ->
+        spinner_camera_mbr.onSelectionChanged { index ->
             Timber.d("Camera MBR selected: $index")
             selectedMbrOption = index
-        })
+        }
 
-        spinner_camera_quality.observableSelection().observe(this, Observer { index ->
+        spinner_camera_quality.onSelectionChanged { index ->
             Timber.d("Camera quality selected: $index")
             selectedQualityOption = index
-        })
+        }
 
-        spinner_echo_cancellation.observableSelection().observe(this, Observer { index ->
+        spinner_echo_cancellation.onSelectionChanged { index ->
             Timber.d("Camera echo cancellation selected: $index")
             selectedAecOption = index
-        })
+        }
 
-        spinner_microphone.observableSelection().observe(this, Observer { index ->
+        spinner_microphone.onSelectionChanged { index ->
             Timber.d("Camera microphone state selected: $index")
             selectedMicrophoneOption = index
-        })
+        }
     }
 
     private fun showLoading() {

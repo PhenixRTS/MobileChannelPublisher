@@ -43,18 +43,14 @@ fun AppCompatActivity.showErrorDialog(error: ExpressError) {
         .show()
 }
 
-fun Spinner.observableSelection(): MutableLiveData<Int> {
-    val selection = MutableLiveData<Int>()
+fun Spinner.onSelectionChanged(callback: (Int) -> Unit) {
     onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
         override fun onNothingSelected(parent: AdapterView<*>?) {
             /* Ignored */
         }
 
         override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-            launchMain {
-                selection.value = position
-            }
+            callback(position)
         }
     }
-    return selection
 }
