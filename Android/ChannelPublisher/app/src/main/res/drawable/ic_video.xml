@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M17,8.1429L20.6061,6.5974C21.1137,6.3798 21.7016,6.615 21.9191,7.1226C21.9725,7.2471 22,7.3811 22,7.5165L22,16.4835C22,17.0357 21.5523,17.4835 21,17.4835C20.8646,17.4835 20.7306,17.456 20.6061,17.4026L17,15.8571L17,17C17,18.1046 16.1046,19 15,19L5,19C3.8954,19 3,18.1046 3,17L3,7C3,5.8954 3.8954,5 5,5L15,5C16.1046,5 17,5.8954 17,7L17,8.1429ZM15,9L15,8C15,7.4477 14.5523,7 14,7L6,7C5.4477,7 5,7.4477 5,8L5,16C5,16.5523 5.4477,17 6,17L14,17C14.5523,17 15,16.5523 15,16L15,15L15,9ZM17,10L17,14L20,15L20,9L17,10Z"
+      android:strokeWidth="1"
+      android:fillColor="#4D4D4D"
+      android:fillType="evenOdd"
+      android:strokeColor="#00000000"/>
+</vector>
