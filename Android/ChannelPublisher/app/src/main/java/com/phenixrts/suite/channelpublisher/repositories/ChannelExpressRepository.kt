@@ -49,6 +49,7 @@ class ChannelExpressRepository(private val context: Application) {
                 Timber.e("Unrecoverable error in PhenixSDK. Error status: [$status]. Description: [$description]")
                 onChannelExpressError.value = ExpressError.UNRECOVERABLE_ERROR
             }
+            .withMinimumConsoleLogLevel("info")
             .buildPCastExpressOptions()
 
         val roomExpressOptions = RoomExpressFactory.createRoomExpressOptionsBuilder()
@@ -135,8 +136,7 @@ class ChannelExpressRepository(private val context: Application) {
         val requestStatus = updateUserMediaStream(configuration)
         if (requestStatus == RequestStatus.OK) {
             Timber.d("Publishing stream")
-            channelExpress?.publishToChannel(getPublishToChannelOptions(configuration, userMediaStream!!))
-                ?.let { status ->
+            channelExpress?.publishToChannel(getPublishToChannelOptions(configuration, userMediaStream!!))?.let { status ->
                     launchMain {
                         Timber.d("Stream is published: $status")
                         expressPublisher = status.publisher
