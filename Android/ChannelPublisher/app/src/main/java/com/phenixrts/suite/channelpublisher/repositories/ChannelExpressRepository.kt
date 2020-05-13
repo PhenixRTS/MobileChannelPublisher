@@ -42,16 +42,21 @@ class ChannelExpressRepository(private val context: Application) {
     private suspend fun initializeChannelExpress() {
         Timber.d("Creating Channel Express: $currentConfiguration")
         AndroidContext.setContext(context)
-        val pcastExpressOptions = PCastExpressFactory.createPCastExpressOptionsBuilder()
-            .withBackendUri(currentConfiguration.backend)
-            .withPCastUri(currentConfiguration.uri)
-            .withUnrecoverableErrorCallback { status: RequestStatus?, description: String ->
-                Timber.e("Unrecoverable error in PhenixSDK. Error status: [$status]. Description: [$description]")
-                onChannelExpressError.value = ExpressError.UNRECOVERABLE_ERROR
-            }
+        var pcastBuilder = PCastExpressFactory.createPCastExpressOptionsBuilder()
             .withMinimumConsoleLogLevel("info")
-            .buildPCastExpressOptions()
+            .withPCastUri(currentConfiguration.uri)
+            .withBackendUri(currentConfiguration.backend)
+            .withUnrecoverableErrorCallback { status: RequestStatus?, description: String ->
+                launchMain {
+                    Timber.e("Unrecoverable error in PhenixSDK. Error status: [$status]. Description: [$description]")
+                    onChannelExpressError.value = ExpressError.UNRECOVERABLE_ERROR
+                }
+            }
+        if (currentConfiguration.edgeAuth != null) {
+            pcastBuilder = pcastBuilder.withAuthenticationToken(currentConfiguration.edgeAuth)
+        }
 
+        val pcastExpressOptions = pcastBuilder.buildPCastExpressOptions()
         val roomExpressOptions = RoomExpressFactory.createRoomExpressOptionsBuilder()
             .withPCastExpressOptions(pcastExpressOptions)
             .buildRoomExpressOptions()

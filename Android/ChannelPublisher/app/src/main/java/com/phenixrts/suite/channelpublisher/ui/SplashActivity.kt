@@ -58,11 +58,12 @@ class SplashActivity : EasyPermissionActivity() {
         if (intent?.data != null) {
             intent.data?.let { data ->
                 channelAlias = data.toString().takeIf { it.contains(QUERY_CHANNEL) }?.substringAfterLast(QUERY_CHANNEL)
+                val edgeAuth = data.getQueryParameter(QUERY_EDGE_AUTH)
                 val isStagingUri = data.toString().startsWith(QUERY_STAGING)
                 val uri = data.getQueryParameter(QUERY_URI) ?: if (isStagingUri) BuildConfig.STAGING_PCAST_URL else BuildConfig.PCAST_URL
                 val backend = data.getQueryParameter(QUERY_BACKEND) ?: if (isStagingUri) BuildConfig.STAGING_BACKEND_URL else BuildConfig.BACKEND_URL
-                val configuration = ChannelConfiguration(uri, backend)
-                Timber.d("Checking deep link: $channelAlias $uri $backend")
+                val configuration = ChannelConfiguration(uri, backend, edgeAuth)
+                Timber.d("Checking deep link: $channelAlias $configuration")
                 if (channelExpressRepository.isChannelExpressInitialized()) {
                     Timber.d("New configuration detected")
                     preferenceProvider.saveConfiguration(configuration)

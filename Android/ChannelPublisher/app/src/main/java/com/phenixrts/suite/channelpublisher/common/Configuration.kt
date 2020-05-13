@@ -14,6 +14,7 @@ import java.io.Serializable
 
 const val QUERY_URI = "uri"
 const val QUERY_BACKEND = "backend"
+const val QUERY_EDGE_AUTH = "edgeauth"
 const val QUERY_CHANNEL = "#"
 const val QUERY_STAGING = "https://stg.phenixrts.com"
 
@@ -34,7 +35,8 @@ var selectedMbrOption = 1
 
 data class ChannelConfiguration(
     val uri: String = BuildConfig.PCAST_URL,
-    val backend: String = BuildConfig.BACKEND_URL
+    val backend: String = BuildConfig.BACKEND_URL,
+    val edgeAuth: String? = null
 ) : Serializable
 
 data class PublishConfiguration(
