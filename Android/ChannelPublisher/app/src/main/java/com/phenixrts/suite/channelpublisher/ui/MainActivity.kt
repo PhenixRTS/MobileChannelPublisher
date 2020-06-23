@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.Observer
+import com.phenixrts.suite.channelpublisher.BuildConfig
 import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
 import com.phenixrts.suite.channelpublisher.R
 import com.phenixrts.suite.channelpublisher.common.*
@@ -16,6 +17,9 @@ import com.phenixrts.suite.channelpublisher.common.enums.ExpressError
 import com.phenixrts.suite.channelpublisher.common.enums.StreamStatus
 import com.phenixrts.suite.channelpublisher.repositories.ChannelExpressRepository
 import com.phenixrts.suite.channelpublisher.ui.viewmodel.ChannelViewModel
+import com.phenixrts.suite.phenixcommon.DebugMenu
+import com.phenixrts.suite.phenixcommon.common.FileWriterDebugTree
+import com.phenixrts.suite.phenixcommon.common.showToast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.view_configuration.*
 import timber.log.Timber
@@ -25,9 +29,17 @@ const val EXTRA_DEEP_LINK_MODEL = "ExtraDeepLinkModel"
 
 class MainActivity : AppCompatActivity() {
 
-    @Inject
-    lateinit var channelExpressRepository: ChannelExpressRepository
+    @Inject lateinit var channelExpressRepository: ChannelExpressRepository
+    @Inject lateinit var fileWriterTree: FileWriterDebugTree
+
     private val viewModel by lazyViewModel { ChannelViewModel(channelExpressRepository) }
+    private val debugMenu: DebugMenu by lazy {
+        DebugMenu(fileWriterTree, channelExpressRepository.roomExpress, main_root, { files ->
+            debugMenu.showAppChooser(this, files)
+        }, { error ->
+            showToast(getString(error))
+        })
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,14 +76,36 @@ class MainActivity : AppCompatActivity() {
             viewModel.stopPublishing()
         }
 
+        menu_overlay.setOnClickListener {
+            debugMenu.onScreenTapped()
+        }
+
         checkDeepLink(intent)
         viewModel.showPublisherPreview(channel_surface.holder)
+        debugMenu.onStart(getString(R.string.debug_app_version,
+            BuildConfig.VERSION_NAME,
+            BuildConfig.VERSION_CODE
+        ), getString(R.string.debug_sdk_version,
+            com.phenixrts.sdk.BuildConfig.VERSION_NAME,
+            com.phenixrts.sdk.BuildConfig.VERSION_CODE
+        ))
     }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         Timber.d("On new intent $intent")
         checkDeepLink(intent)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        debugMenu.onStop()
+    }
+
+    override fun onBackPressed() {
+        if (debugMenu.isClosed()){
+            super.onBackPressed()
+        }
     }
 
     private fun initializeDropDowns() {

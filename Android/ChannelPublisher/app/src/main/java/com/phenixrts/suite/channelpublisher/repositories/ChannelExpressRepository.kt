@@ -36,6 +36,7 @@ class ChannelExpressRepository(private val context: Application) {
 
     val onChannelExpressError = MutableLiveData<ExpressError>()
     val onChannelState = MutableLiveData<StreamStatus>()
+    var roomExpress: RoomExpress? = null
 
     private fun hasConfigurationChanged(configuration: ChannelConfiguration): Boolean = currentConfiguration != configuration
 
@@ -67,6 +68,7 @@ class ChannelExpressRepository(private val context: Application) {
 
         ChannelExpressFactory.createChannelExpress(channelExpressOptions)?.let { express ->
             channelExpress = express
+            roomExpress = express.roomExpress
             val userMedia = express.pCastExpress.getUserMedia(getDefaultUserMediaOptions())
             Timber.d("Media stream collected from pCast")
             userMediaStream = userMedia
