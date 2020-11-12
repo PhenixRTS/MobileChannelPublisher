@@ -7,7 +7,7 @@ package com.phenixrts.suite.channelpublisher.ui
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
-import androidx.lifecycle.Observer
+import android.os.Looper
 import com.google.android.material.snackbar.Snackbar
 import com.phenixrts.suite.channelpublisher.BuildConfig
 import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
@@ -28,7 +28,7 @@ class SplashActivity : EasyPermissionActivity() {
     @Inject
     lateinit var preferenceProvider: PreferenceProvider
 
-    private val timeoutHandler = Handler()
+    private val timeoutHandler = Handler(Looper.getMainLooper())
     private val timeoutRunnable = Runnable {
         launchMain {
             showSnackBar(getString(R.string.err_network_problems))
@@ -39,7 +39,7 @@ class SplashActivity : EasyPermissionActivity() {
         super.onCreate(savedInstanceState)
         ChannelPublisherApplication.component.inject(this)
         setContentView(R.layout.activity_splash)
-        channelExpressRepository.onChannelExpressError.observe(this, Observer { error ->
+        channelExpressRepository.onChannelExpressError.observe(this, { error ->
             Timber.d("Channel express failed")
             showErrorDialog(error)
         })

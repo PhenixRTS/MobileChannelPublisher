@@ -4,7 +4,6 @@
 
 <resources>
     <string name="app_name">Channel Publisher</string>
-    <string name="offline_title">ffline</string>
     <string name="err_network_problems">Experiencing problems connecting to Phenix. Check your network status.</string>
     <string name="err_invalid_deep_link">Invalid deep link, application will close.</string>
     <string name="err_unrecoverable_error">Encountered an unexpected error, please start the application again.</string>

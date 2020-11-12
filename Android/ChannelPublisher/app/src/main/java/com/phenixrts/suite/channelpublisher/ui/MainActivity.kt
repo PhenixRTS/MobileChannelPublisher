@@ -5,10 +5,9 @@
 package com.phenixrts.suite.channelpublisher.ui
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import androidx.lifecycle.Observer
+import androidx.appcompat.app.AppCompatActivity
 import com.phenixrts.suite.channelpublisher.BuildConfig
 import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
 import com.phenixrts.suite.channelpublisher.R
@@ -32,7 +31,9 @@ class MainActivity : AppCompatActivity() {
     @Inject lateinit var channelExpressRepository: ChannelExpressRepository
     @Inject lateinit var fileWriterTree: FileWriterDebugTree
 
-    private val viewModel by lazyViewModel { ChannelViewModel(channelExpressRepository) }
+    private val viewModel: ChannelViewModel by lazyViewModel({ application as ChannelPublisherApplication }, {
+        ChannelViewModel(channelExpressRepository)
+    })
     private val debugMenu: DebugMenu by lazy {
         DebugMenu(fileWriterTree, channelExpressRepository.roomExpress, main_root, { files ->
             debugMenu.showAppChooser(this, files)
@@ -47,11 +48,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         initializeDropDowns()
 
-        viewModel.onChannelExpressError.observe(this, Observer { error ->
+        viewModel.onChannelExpressError.observe(this, { error ->
             Timber.d("Channel Express failed: $error")
             showErrorDialog(error)
         })
-        viewModel.onChannelState.observe(this, Observer { status ->
+        viewModel.onChannelState.observe(this, { status ->
             Timber.d("Stream state changed: $status")
             hideLoading()
             if (status == StreamStatus.CONNECTED) {

@@ -4,16 +4,17 @@
 
 package com.phenixrts.suite.channelpublisher.common
 
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
 
-inline fun <reified T : ViewModel> AppCompatActivity.lazyViewModel(noinline creator: (() -> T)? = null) = lazy {
-    if (creator == null)
-        ViewModelProvider(this).get(T::class.java)
-    else
-        ViewModelProvider(this, BaseViewModelFactory(creator)).get(T::class.java)
-}
+inline fun <reified T : ViewModel> lazyViewModel(noinline owner: (() -> ChannelPublisherApplication), noinline creator: (() -> T)? = null) =
+    lazy {
+        if (creator == null)
+            ViewModelProvider(owner()).get(T::class.java)
+        else
+            ViewModelProvider(owner(), BaseViewModelFactory(creator)).get(T::class.java)
+    }
 
 class BaseViewModelFactory<T>(val creator: () -> T) : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {

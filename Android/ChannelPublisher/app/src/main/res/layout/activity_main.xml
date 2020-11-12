@@ -50,6 +50,7 @@
             android:src="@drawable/ic_power"
             android:tint="@color/primaryTextColor"
             android:visibility="gone"
+            android:contentDescription="@null"
             app:backgroundTint="@color/accentColor"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

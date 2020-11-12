@@ -5,6 +5,8 @@
 package com.phenixrts.suite.channelpublisher
 
 import android.app.Application
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
 import com.phenixrts.suite.channelpublisher.injection.DaggerInjectionComponent
 import com.phenixrts.suite.channelpublisher.injection.InjectionComponent
 import com.phenixrts.suite.channelpublisher.injection.InjectionModule
@@ -12,7 +14,11 @@ import com.phenixrts.suite.phenixcommon.common.FileWriterDebugTree
 import timber.log.Timber
 import javax.inject.Inject
 
-class ChannelPublisherApplication : Application() {
+class ChannelPublisherApplication : Application(), ViewModelStoreOwner {
+
+    private val appViewModelStore: ViewModelStore by lazy {
+        ViewModelStore()
+    }
 
     @Inject
     lateinit var fileWriterTree: FileWriterDebugTree
@@ -26,6 +32,8 @@ class ChannelPublisherApplication : Application() {
             Timber.plant(fileWriterTree)
         }
     }
+
+    override fun getViewModelStore() = appViewModelStore
 
     companion object {
         lateinit var component: InjectionComponent

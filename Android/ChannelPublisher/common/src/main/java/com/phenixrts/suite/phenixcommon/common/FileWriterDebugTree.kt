@@ -14,8 +14,6 @@ import timber.log.Timber
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 private const val DATE_FORMAT = "MM-dd HH:mm:ss.SSS"
 private val LEVEL_NAMES = arrayOf("F", "?", "T", "D", "I", "W", "E")
@@ -109,7 +107,7 @@ class FileWriterDebugTree(
         }
     }
 
-    private suspend fun writeAppLogs(message: String) = suspendCoroutine<Unit> { continuation ->
+    private fun writeAppLogs(message: String) {
         try {
             if (lineCount == MAX_LINES_PER_FILE) {
                 appFileWriter?.flush()
@@ -131,16 +129,14 @@ class FileWriterDebugTree(
         } catch (e: IOException) {
             d(e, "Failed to write app logs")
         }
-        continuation.resume(Unit)
     }
 
-    suspend fun writeSdkLogs(message: String) = suspendCoroutine<Unit> { continuation ->
+    fun writeSdkLogs(message: String) {
         try {
             sdkFileWriter?.write(message)
         } catch (e: IOException) {
             d(e, "Failed to write sdk logs")
         }
-        continuation.resume(Unit)
     }
 
     private fun getFormattedLogMessage(tag: String?, level: Int, message: String?, e: Throwable?): String {
