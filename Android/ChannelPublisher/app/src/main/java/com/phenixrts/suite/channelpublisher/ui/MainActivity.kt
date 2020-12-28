@@ -14,13 +14,12 @@ import com.phenixrts.suite.channelpublisher.R
 import com.phenixrts.suite.channelpublisher.common.*
 import com.phenixrts.suite.channelpublisher.common.enums.ExpressError
 import com.phenixrts.suite.channelpublisher.common.enums.StreamStatus
+import com.phenixrts.suite.channelpublisher.databinding.ActivityMainBinding
 import com.phenixrts.suite.channelpublisher.repositories.ChannelExpressRepository
 import com.phenixrts.suite.channelpublisher.ui.viewmodel.ChannelViewModel
 import com.phenixrts.suite.phenixcommon.DebugMenu
 import com.phenixrts.suite.phenixcommon.common.FileWriterDebugTree
 import com.phenixrts.suite.phenixcommon.common.showToast
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.view_configuration.*
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -30,12 +29,13 @@ class MainActivity : AppCompatActivity() {
 
     @Inject lateinit var channelExpressRepository: ChannelExpressRepository
     @Inject lateinit var fileWriterTree: FileWriterDebugTree
+    private lateinit var binding: ActivityMainBinding
 
     private val viewModel: ChannelViewModel by lazyViewModel({ application as ChannelPublisherApplication }, {
         ChannelViewModel(channelExpressRepository)
     })
     private val debugMenu: DebugMenu by lazy {
-        DebugMenu(fileWriterTree, channelExpressRepository.roomExpress, main_root, { files ->
+        DebugMenu(fileWriterTree, channelExpressRepository.roomExpress, binding.root, { files ->
             debugMenu.showAppChooser(this, files)
         }, { error ->
             showToast(getString(error))
@@ -45,7 +45,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ChannelPublisherApplication.component.inject(this)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         initializeDropDowns()
 
         viewModel.onChannelExpressError.observe(this, { error ->
@@ -66,23 +67,23 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        publish_button.setOnClickListener {
+        binding.configuration.publishButton.setOnClickListener {
             Timber.d("Publish button clicked")
             showLoading()
-            viewModel.publishToChannel(getPublishConfiguration(), channel_surface.holder)
+            viewModel.publishToChannel(getPublishConfiguration(), binding.channelSurface.holder)
         }
 
-        end_stream_button.setOnClickListener {
+        binding.endStreamButton.setOnClickListener {
             Timber.d("End publish button clicked")
             viewModel.stopPublishing()
         }
 
-        menu_overlay.setOnClickListener {
+        binding.menuOverlay.setOnClickListener {
             debugMenu.onScreenTapped()
         }
 
         checkDeepLink(intent)
-        viewModel.showPublisherPreview(channel_surface.holder)
+        viewModel.showPublisherPreview(binding.channelSurface.holder)
         debugMenu.onStart(getString(R.string.debug_app_version,
             BuildConfig.VERSION_NAME,
             BuildConfig.VERSION_CODE
@@ -111,60 +112,60 @@ class MainActivity : AppCompatActivity() {
 
     private fun initializeDropDowns() {
         Timber.d("Initialize drop downs")
-        spinner_camera_facing.setSelection(selectedCameraFacing)
-        spinner_camera_fps.setSelection(selectedFpsOption)
-        spinner_camera_mbr.setSelection(selectedMbrOption)
-        spinner_camera_quality.setSelection(selectedQualityOption)
-        spinner_echo_cancellation.setSelection(selectedAecOption)
-        spinner_microphone.setSelection(selectedMicrophoneOption)
+        binding.configuration.spinnerCameraFacing.setSelection(selectedCameraFacing)
+        binding.configuration.spinnerCameraFps.setSelection(selectedFpsOption)
+        binding.configuration.spinnerCameraMbr.setSelection(selectedMbrOption)
+        binding.configuration.spinnerCameraQuality.setSelection(selectedQualityOption)
+        binding.configuration.spinnerEchoCancellation.setSelection(selectedAecOption)
+        binding.configuration.spinnerMicrophone.setSelection(selectedMicrophoneOption)
 
-        spinner_camera_facing.onSelectionChanged { index ->
+        binding.configuration.spinnerCameraFacing.onSelectionChanged { index ->
             Timber.d("Camera facing selected: $index")
             selectedCameraFacing = index
         }
 
-        spinner_camera_fps.onSelectionChanged { index ->
+        binding.configuration.spinnerCameraFps.onSelectionChanged { index ->
             Timber.d("Camera FPS selected: $index")
             selectedFpsOption = index
         }
 
-        spinner_camera_mbr.onSelectionChanged { index ->
+        binding.configuration.spinnerCameraMbr.onSelectionChanged { index ->
             Timber.d("Camera MBR selected: $index")
             selectedMbrOption = index
         }
 
-        spinner_camera_quality.onSelectionChanged { index ->
+        binding.configuration.spinnerCameraQuality.onSelectionChanged { index ->
             Timber.d("Camera quality selected: $index")
             selectedQualityOption = index
         }
 
-        spinner_echo_cancellation.onSelectionChanged { index ->
+        binding.configuration.spinnerEchoCancellation.onSelectionChanged { index ->
             Timber.d("Camera echo cancellation selected: $index")
             selectedAecOption = index
         }
 
-        spinner_microphone.onSelectionChanged { index ->
+        binding.configuration.spinnerMicrophone.onSelectionChanged { index ->
             Timber.d("Camera microphone state selected: $index")
             selectedMicrophoneOption = index
         }
     }
 
     private fun showLoading() {
-        loading_progress_bar.visibility = View.VISIBLE
+        binding.loadingProgressBar.visibility = View.VISIBLE
     }
 
     private fun hideLoading() {
-        loading_progress_bar.visibility = View.GONE
+        binding.loadingProgressBar.visibility = View.GONE
     }
 
     private fun showConfigurationOverlay() {
-        configuration.visibility = View.VISIBLE
-        end_stream_button.visibility = View.GONE
+        binding.configuration.root.visibility = View.VISIBLE
+        binding.endStreamButton.visibility = View.GONE
     }
 
     private fun hideConfigurationOverlay() {
-        configuration.visibility = View.GONE
-        end_stream_button.visibility = View.VISIBLE
+        binding.configuration.root.visibility = View.GONE
+        binding.endStreamButton.visibility = View.VISIBLE
     }
 
     private fun checkDeepLink(intent: Intent?) = launchMain {
