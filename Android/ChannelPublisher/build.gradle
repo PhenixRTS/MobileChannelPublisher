@@ -2,14 +2,12 @@
  * Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-
 buildscript {
     ext.kotlin_version = '1.4.21'
     ext.lifecycle_version = '2.2.0'
     ext.arch_version = '2.1.0'
-    ext.kotlinx_coroutines_version = '1.4.0'
-    ext.phenix_version = '2020.1.76'
+    ext.kotlinx_coroutines_version = '1.4.1'
+    ext.phenix_version = '2021.0.0'
 
     repositories {
         google()
