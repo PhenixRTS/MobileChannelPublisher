@@ -14,8 +14,8 @@ import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
 import com.phenixrts.suite.channelpublisher.R
 import com.phenixrts.suite.channelpublisher.common.*
 import com.phenixrts.suite.channelpublisher.common.enums.ExpressError
+import com.phenixrts.suite.channelpublisher.databinding.ActivitySplashBinding
 import com.phenixrts.suite.channelpublisher.repositories.ChannelExpressRepository
-import kotlinx.android.synthetic.main.activity_splash.*
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -23,10 +23,9 @@ private const val TIMEOUT_DELAY = 5000L
 
 class SplashActivity : EasyPermissionActivity() {
 
-    @Inject
-    lateinit var channelExpressRepository: ChannelExpressRepository
-    @Inject
-    lateinit var preferenceProvider: PreferenceProvider
+    @Inject lateinit var channelExpressRepository: ChannelExpressRepository
+    @Inject lateinit var preferenceProvider: PreferenceProvider
+    private lateinit var binding: ActivitySplashBinding
 
     private val timeoutHandler = Handler(Looper.getMainLooper())
     private val timeoutRunnable = Runnable {
@@ -38,7 +37,8 @@ class SplashActivity : EasyPermissionActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ChannelPublisherApplication.component.inject(this)
-        setContentView(R.layout.activity_splash)
+        binding = ActivitySplashBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         channelExpressRepository.onChannelExpressError.observe(this, { error ->
             Timber.d("Channel express failed")
             showErrorDialog(error)
@@ -100,7 +100,7 @@ class SplashActivity : EasyPermissionActivity() {
     }
 
     private fun showSnackBar(message: String) = launchMain {
-        Snackbar.make(splash_root, message, Snackbar.LENGTH_INDEFINITE).show()
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_INDEFINITE).show()
     }
 
     private fun showLandingScreen(channelAlias: String?) = launchMain {
