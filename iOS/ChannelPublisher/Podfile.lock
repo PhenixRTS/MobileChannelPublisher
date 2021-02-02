@@ -1,0 +1,29 @@
+PODS:
+  - PhenixDebug (0.1.0):
+    - PhenixSdk (~> 2021.0.0-beta)
+  - PhenixDeeplink (0.1.0)
+  - PhenixSdk (2021.0.1-beta)
+
+DEPENDENCIES:
+  - PhenixDebug (from `../PhenixDebug`)
+  - PhenixDeeplink (from `../PhenixDeeplink`)
+  - PhenixSdk (= 2021.0.1-beta)
+
+SPEC REPOS:
+  "git@github.com:PhenixRTS/CocoaPodsSpecs.git":
+    - PhenixSdk
+
+EXTERNAL SOURCES:
+  PhenixDebug:
+    :path: "../PhenixDebug"
+  PhenixDeeplink:
+    :path: "../PhenixDeeplink"
+
+SPEC CHECKSUMS:
+  PhenixDebug: 2c90af152f6f4dda1e4a71a431a789b9965c7d18
+  PhenixDeeplink: ec09934ad28225c81852366981bb820bef2c9682
+  PhenixSdk: d52f35d5ff551e4a86b64ddc6d59495d605c1796
+
+PODFILE CHECKSUM: e93c3df219dd627c7d686f85457f5965b5f1f131
+
+COCOAPODS: 1.10.1

@@ -1,0 +1,12 @@
+source 'https://cdn.cocoapods.org/'
+source 'git@github.com:PhenixRTS/CocoaPodsSpecs.git' # Phenix private repository
+
+platform :ios, '12.0'
+use_frameworks!
+inhibit_all_warnings!
+
+target 'ChannelPublisher' do
+  pod 'PhenixSdk', '2021.0.1-beta'
+  pod 'PhenixDebug', :path => '../PhenixDebug'
+  pod 'PhenixDeeplink', :path => '../PhenixDeeplink'
+end
