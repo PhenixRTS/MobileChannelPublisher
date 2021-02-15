@@ -2,6 +2,6 @@
  * Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 include ':common'
-
-rootProject.name='Channel Publisher'
+include ':phenixdeeplink'
 include ':app'
+rootProject.name='Channel Publisher'

@@ -9,14 +9,8 @@ import com.phenixrts.express.PCastExpressFactory
 import com.phenixrts.express.PublishToChannelOptions
 import com.phenixrts.pcast.*
 import com.phenixrts.room.RoomServiceFactory
-import com.phenixrts.suite.channelpublisher.BuildConfig
-import java.io.Serializable
-
-const val QUERY_URI = "uri"
-const val QUERY_BACKEND = "backend"
-const val QUERY_EDGE_AUTH = "edgeauth"
-const val QUERY_CHANNEL = "#"
-const val QUERY_STAGING = "https://stg.phenixrts.com"
+import com.phenixrts.suite.phenixdeeplink.common.ChannelConfiguration
+import timber.log.Timber
 
 private val CAMERA_OPTIONS = listOf(FacingMode.USER, FacingMode.ENVIRONMENT, FacingMode.UNDEFINED)
 private val MICROPHONE_OPTIONS = listOf(true, false)
@@ -33,12 +27,6 @@ var selectedFpsOption = 0
 var selectedAecOption = 1
 var selectedMbrOption = 1
 
-data class ChannelConfiguration(
-    val uri: String = BuildConfig.PCAST_URL,
-    val backend: String = BuildConfig.BACKEND_URL,
-    val edgeAuth: String? = null
-) : Serializable
-
 data class PublishConfiguration(
     val channelAlias: String,
     val cameraFacingMode: FacingMode,
@@ -48,19 +36,25 @@ data class PublishConfiguration(
     val capabilities: List<String>
 )
 
-fun getPublishToChannelOptions(configuration: PublishConfiguration, userMediaStream: UserMediaStream): PublishToChannelOptions {
+fun getPublishToChannelOptions(publishConfig: PublishConfiguration, channelConfig: ChannelConfiguration,
+                               userMediaStream: UserMediaStream): PublishToChannelOptions {
     val channelOptions = RoomServiceFactory.createChannelOptionsBuilder()
          // TODO: If name is not set - publish callback returns FAILED without any extra explanation why
-        .withName(configuration.channelAlias)
-        .withAlias(configuration.channelAlias)
+        .withName(publishConfig.channelAlias)
+        .withAlias(publishConfig.channelAlias)
         .buildChannelOptions()
-    val publishOptions  = PCastExpressFactory.createPublishOptionsBuilder()
-        .withCapabilities(configuration.capabilities.toTypedArray())
+    var publishOptionsBuilder = PCastExpressFactory.createPublishOptionsBuilder()
         .withUserMedia(userMediaStream)
-        .buildPublishOptions()
+    publishOptionsBuilder = if (!channelConfig.publishToken.isNullOrBlank()) {
+        Timber.d("Publishing with publish token: ${channelConfig.publishToken}")
+        publishOptionsBuilder.withStreamToken(channelConfig.publishToken).withSkipRetryOnUnauthorized()
+    } else {
+        Timber.d("Publishing with capabilities")
+        publishOptionsBuilder.withCapabilities(publishConfig.capabilities.toTypedArray())
+    }
     return ChannelExpressFactory.createPublishToChannelOptionsBuilder()
         .withChannelOptions(channelOptions)
-        .withPublishOptions(publishOptions)
+        .withPublishOptions(publishOptionsBuilder.buildPublishOptions())
         .buildPublishToChannelOptions()
 }
 

@@ -7,13 +7,15 @@ package com.phenixrts.suite.channelpublisher.ui
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager.PERMISSION_GRANTED
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.phenixrts.suite.phenixdeeplink.DeepLinkActivity
+import com.phenixrts.suite.phenixdeeplink.DeepLinkStatus
 import java.util.*
+import kotlin.collections.HashMap
 
 @SuppressLint("Registered")
-open class EasyPermissionActivity : AppCompatActivity() {
+open class EasyPermissionActivity : DeepLinkActivity() {
 
     private val permissionRequestHistory = hashMapOf<Int, (a: Boolean) -> Unit>()
 
@@ -50,6 +52,15 @@ open class EasyPermissionActivity : AppCompatActivity() {
             this(grantResults.isNotEmpty() && grantResults[0] == PERMISSION_GRANTED)
             permissionRequestHistory.remove(requestCode)
         }
+    }
+
+    override val additionalConfiguration: HashMap<String, String>
+        get() = HashMap()
+
+    override fun isAlreadyInitialized(): Boolean = false
+
+    override fun onDeepLinkQueried(status: DeepLinkStatus) {
+        /* Ignored */
     }
 
     private fun Int.low16bits() = this and 0xFFFF

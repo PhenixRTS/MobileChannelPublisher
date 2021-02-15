@@ -17,6 +17,7 @@ import com.phenixrts.room.RoomService
 import com.phenixrts.suite.channelpublisher.common.*
 import com.phenixrts.suite.channelpublisher.common.enums.ExpressError
 import com.phenixrts.suite.channelpublisher.common.enums.StreamStatus
+import com.phenixrts.suite.phenixdeeplink.common.ChannelConfiguration
 import kotlinx.coroutines.delay
 import timber.log.Timber
 import kotlin.coroutines.resume
@@ -46,15 +47,29 @@ class ChannelExpressRepository(private val context: Application) {
         var pcastBuilder = PCastExpressFactory.createPCastExpressOptionsBuilder()
             .withMinimumConsoleLogLevel("info")
             .withPCastUri(currentConfiguration.uri)
-            .withBackendUri(currentConfiguration.backend)
             .withUnrecoverableErrorCallback { status: RequestStatus?, description: String ->
                 launchMain {
                     Timber.e("Unrecoverable error in PhenixSDK. Error status: [$status]. Description: [$description]")
                     onChannelExpressError.value = ExpressError.UNRECOVERABLE_ERROR
                 }
             }
-        if (currentConfiguration.edgeAuth != null) {
-            pcastBuilder = pcastBuilder.withAuthenticationToken(currentConfiguration.edgeAuth)
+        var deepLinkValid = false
+        when {
+            !currentConfiguration.authToken.isNullOrBlank() -> {
+                Timber.d("Using authentication token: ${currentConfiguration.authToken}")
+                pcastBuilder = pcastBuilder.withAuthenticationToken(currentConfiguration.authToken)
+                deepLinkValid = true
+            }
+            !currentConfiguration.edgeToken.isNullOrBlank() -> {
+                Timber.d("Using edge token: ${currentConfiguration.edgeToken}")
+                pcastBuilder = pcastBuilder.withAuthenticationToken(currentConfiguration.edgeToken)
+                deepLinkValid = true
+            }
+            !currentConfiguration.backend.isNullOrBlank() -> {
+                Timber.d("Using backend Uri: ${currentConfiguration.backend}")
+                pcastBuilder = pcastBuilder.withBackendUri(currentConfiguration.backend)
+                deepLinkValid = true
+            }
         }
 
         val pcastExpressOptions = pcastBuilder.buildPCastExpressOptions()
@@ -76,6 +91,8 @@ class ChannelExpressRepository(private val context: Application) {
 
         if (userMediaStream == null) {
             onChannelExpressError.value = ExpressError.UNRECOVERABLE_ERROR
+        } else if (!deepLinkValid) {
+            onChannelExpressError.value = ExpressError.DEEP_LINK_ERROR
         }
     }
 
@@ -143,7 +160,8 @@ class ChannelExpressRepository(private val context: Application) {
         val requestStatus = updateUserMediaStream(configuration)
         if (requestStatus == RequestStatus.OK) {
             Timber.d("Publishing stream")
-            channelExpress?.publishToChannel(getPublishToChannelOptions(configuration, userMediaStream!!))?.let { status ->
+            channelExpress?.publishToChannel(
+                getPublishToChannelOptions(configuration, currentConfiguration, userMediaStream!!))?.let { status ->
                     launchMain {
                         Timber.d("Stream is published: $status")
                         expressPublisher = status.publisher

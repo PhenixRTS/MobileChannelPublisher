@@ -3,11 +3,12 @@
  */
 
 buildscript {
-    ext.kotlin_version = '1.4.30-RC'
-    ext.lifecycle_version = '2.2.0'
+    ext.kotlin_version = '1.4.30'
+    ext.lifecycle_version = '2.3.0'
     ext.arch_version = '2.1.0'
+    ext.dagger_version = '2.32'
     ext.kotlinx_coroutines_version = '1.4.1'
-    ext.phenix_version = '2021.0.0'
+    ext.phenix_version = '2021.0.1'
 
     repositories {
         google()
@@ -16,6 +17,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:4.1.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
