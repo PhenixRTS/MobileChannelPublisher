@@ -22,7 +22,10 @@ struct PhenixDeeplinkModel: PhenixDeeplinkModelProvider {
             self.backend = URL(string: string)
         }
 
-        if let string = components.queryItems?.first(where: { $0.name == "edgeToken" })?.value {
+        if let string = components.queryItems?.first(where: { $0.name == "authToken" })?.value {
+            self.authToken = string
+        } else if let string = components.queryItems?.first(where: { $0.name == "edgeToken" })?.value {
+            // "edgeToken" is deprecated token key name. It will be removed later on.
             self.authToken = string
         }
 
