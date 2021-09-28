@@ -1,12 +1,11 @@
 /*
- * Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.repositories
 
 import android.app.Application
 import android.view.SurfaceHolder
-import androidx.lifecycle.MutableLiveData
 import com.phenixrts.common.RequestStatus
 import com.phenixrts.environment.android.AndroidContext
 import com.phenixrts.express.*
@@ -17,11 +16,12 @@ import com.phenixrts.room.RoomService
 import com.phenixrts.suite.channelpublisher.common.*
 import com.phenixrts.suite.channelpublisher.common.enums.ExpressError
 import com.phenixrts.suite.channelpublisher.common.enums.StreamStatus
-import com.phenixrts.suite.phenixdeeplink.common.ChannelConfiguration
+import com.phenixrts.suite.phenixcommon.common.launchIO
+import com.phenixrts.suite.phenixdeeplink.models.PhenixDeepLinkConfiguration
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import timber.log.Timber
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 private const val REINITIALIZATION_DELAY = 1000L
 
@@ -32,49 +32,31 @@ class ChannelExpressRepository(private val context: Application) {
     private var userMediaRenderer: Renderer? = null
     private var expressPublisher: ExpressPublisher? = null
     private var roomService: RoomService? = null
-    private var currentConfiguration = ChannelConfiguration()
+    private var expressConfiguration = PhenixDeepLinkConfiguration()
     private val androidVideoSurface by lazy { AndroidVideoRenderSurface() }
 
-    val onChannelExpressError = MutableLiveData<ExpressError>()
-    val onChannelState = MutableLiveData<StreamStatus>()
+    private val _onError = MutableSharedFlow<ExpressError>(replay = 1)
+    private val _onChannelState = MutableSharedFlow<StreamStatus>(replay = 1)
+
+    val onError: SharedFlow<ExpressError> = _onError
+    val onChannelState: SharedFlow<StreamStatus> = _onChannelState
     var roomExpress: RoomExpress? = null
 
-    private fun hasConfigurationChanged(configuration: ChannelConfiguration): Boolean = currentConfiguration != configuration
+    private fun hasConfigurationChanged(configuration: PhenixDeepLinkConfiguration): Boolean = expressConfiguration != configuration
 
     private suspend fun initializeChannelExpress() {
-        Timber.d("Creating Channel Express: $currentConfiguration")
+        Timber.d("Creating Channel Express: $expressConfiguration")
         AndroidContext.setContext(context)
-        var pcastBuilder = PCastExpressFactory.createPCastExpressOptionsBuilder()
+        val pCastExpress = PCastExpressFactory.createPCastExpressOptionsBuilder()
             .withMinimumConsoleLogLevel("info")
-            .withPCastUri(currentConfiguration.uri)
             .withUnrecoverableErrorCallback { status: RequestStatus?, description: String ->
-                launchMain {
-                    Timber.e("Unrecoverable error in PhenixSDK. Error status: [$status]. Description: [$description]")
-                    onChannelExpressError.value = ExpressError.UNRECOVERABLE_ERROR
-                }
+                Timber.e("Unrecoverable error in PhenixSDK. Error status: [$status]. Description: [$description]")
+                _onError.tryEmit(ExpressError.UNRECOVERABLE_ERROR)
             }
-        var deepLinkValid = false
-        when {
-            !currentConfiguration.authToken.isNullOrBlank() -> {
-                Timber.d("Using authentication token: ${currentConfiguration.authToken}")
-                pcastBuilder = pcastBuilder.withAuthenticationToken(currentConfiguration.authToken)
-                deepLinkValid = true
-            }
-            !currentConfiguration.edgeToken.isNullOrBlank() -> {
-                Timber.d("Using edge token: ${currentConfiguration.edgeToken}")
-                pcastBuilder = pcastBuilder.withAuthenticationToken(currentConfiguration.edgeToken)
-                deepLinkValid = true
-            }
-            !currentConfiguration.backend.isNullOrBlank() -> {
-                Timber.d("Using backend Uri: ${currentConfiguration.backend}")
-                pcastBuilder = pcastBuilder.withBackendUri(currentConfiguration.backend)
-                deepLinkValid = true
-            }
-        }
-
-        val pcastExpressOptions = pcastBuilder.buildPCastExpressOptions()
+            .withAuthenticationToken(expressConfiguration.edgeToken)
+            .buildPCastExpressOptions()
         val roomExpressOptions = RoomExpressFactory.createRoomExpressOptionsBuilder()
-            .withPCastExpressOptions(pcastExpressOptions)
+            .withPCastExpressOptions(pCastExpress)
             .buildRoomExpressOptions()
 
         val channelExpressOptions = ChannelExpressFactory.createChannelExpressOptionsBuilder()
@@ -84,15 +66,15 @@ class ChannelExpressRepository(private val context: Application) {
         ChannelExpressFactory.createChannelExpress(channelExpressOptions)?.let { express ->
             channelExpress = express
             roomExpress = express.roomExpress
-            val userMedia = express.pCastExpress.getUserMedia(getDefaultUserMediaOptions())
+            userMediaStream = express.pCastExpress.getUserMedia(getDefaultUserMediaOptions())
             Timber.d("Media stream collected from pCast")
-            userMediaStream = userMedia
+        } ?: run {
+            Timber.e("Unrecoverable error in PhenixSDK")
+            _onError.tryEmit(ExpressError.UNRECOVERABLE_ERROR)
         }
 
         if (userMediaStream == null) {
-            onChannelExpressError.value = ExpressError.UNRECOVERABLE_ERROR
-        } else if (!deepLinkValid) {
-            onChannelExpressError.value = ExpressError.DEEP_LINK_ERROR
+            _onError.tryEmit(ExpressError.UNRECOVERABLE_ERROR)
         }
     }
 
@@ -127,51 +109,46 @@ class ChannelExpressRepository(private val context: Application) {
         return requestStatus
     }
 
-    suspend fun setupChannelExpress(configuration: ChannelConfiguration) {
+    suspend fun setupChannelExpress(configuration: PhenixDeepLinkConfiguration) {
         if (hasConfigurationChanged(configuration)) {
             Timber.d("Channel Express configuration has changed: $configuration")
-            currentConfiguration = configuration
-            channelExpress?.dispose()
+            expressConfiguration = configuration
+            channelExpress?.run {
+                dispose()
+                Timber.d("Channel Express disposed")
+            }
             channelExpress = null
-            Timber.d("Channel Express disposed")
             delay(REINITIALIZATION_DELAY)
             initializeChannelExpress()
         }
     }
 
-    suspend fun waitForPCast(): Unit = suspendCoroutine {
-        launchMain {
-            Timber.d("Waiting for pCast")
-            if (channelExpress == null) {
-                initializeChannelExpress()
-            }
-            channelExpress?.pCastExpress?.waitForOnline()
-            it.resume(Unit)
+    suspend fun waitForPCast() {
+        Timber.d("Waiting for pCast")
+        if (channelExpress == null) {
+            initializeChannelExpress()
         }
+        channelExpress?.pCastExpress?.waitForOnline()
     }
 
     suspend fun publishToChannel(configuration: PublishConfiguration) = launchIO {
         if (userMediaStream == null || channelExpress == null) {
-            launchMain {
-                Timber.d("Repository not initialized properly")
-                onChannelExpressError.value = ExpressError.UNRECOVERABLE_ERROR
-            }
+            Timber.d("Repository not initialized properly")
+            _onError.tryEmit(ExpressError.UNRECOVERABLE_ERROR)
         }
         val requestStatus = updateUserMediaStream(configuration)
         if (requestStatus == RequestStatus.OK) {
             Timber.d("Publishing stream")
             channelExpress?.publishToChannel(
-                getPublishToChannelOptions(configuration, currentConfiguration, userMediaStream!!))?.let { status ->
-                    launchMain {
-                        Timber.d("Stream is published: $status")
-                        expressPublisher = status.publisher
-                        roomService = status.roomService
-                        onChannelState.value = status.streamStatus
-                    }
-                }
-        } else launchMain {
+                getPublishToChannelOptions(configuration, expressConfiguration, userMediaStream!!))?.let { status ->
+                Timber.d("Stream is published: $status")
+                expressPublisher = status.publisher
+                roomService = status.roomService
+                _onChannelState.tryEmit(status.streamStatus)
+            }
+        } else {
             Timber.d("Publishing failed")
-            onChannelState.value = StreamStatus.FAILED
+            _onChannelState.tryEmit(StreamStatus.FAILED)
         }
     }
 
@@ -189,7 +166,7 @@ class ChannelExpressRepository(private val context: Application) {
             userMediaRenderer?.start(androidVideoSurface)
         }
         if (userMediaRenderer == null) {
-            onChannelExpressError.value = ExpressError.UNRECOVERABLE_ERROR
+            _onError.tryEmit(ExpressError.UNRECOVERABLE_ERROR)
         }
     }
 
@@ -197,10 +174,8 @@ class ChannelExpressRepository(private val context: Application) {
         expressPublisher?.stop()
         expressPublisher = null
         roomService?.leaveRoom { _, status ->
-            launchMain {
-                Timber.d("Room left: $status")
-                onChannelState.value = StreamStatus.DISCONNECTED
-            }
+            Timber.d("Room left: $status")
+            _onChannelState.tryEmit(StreamStatus.DISCONNECTED)
         }
     }
 }

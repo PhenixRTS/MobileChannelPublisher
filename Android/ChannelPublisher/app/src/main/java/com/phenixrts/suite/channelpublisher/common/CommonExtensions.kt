@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.common
@@ -9,8 +9,10 @@ import android.widget.AdapterView
 import android.widget.Spinner
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
 import com.phenixrts.suite.channelpublisher.R
 import com.phenixrts.suite.channelpublisher.common.enums.ExpressError
+import com.phenixrts.suite.phenixcommon.common.launchMain
 import kotlin.system.exitProcess
 
 private fun AppCompatActivity.closeApp() {
@@ -40,6 +42,10 @@ fun AppCompatActivity.showErrorDialog(error: ExpressError) {
         }
         .create()
         .show()
+}
+
+fun View.showSnackBar(message: String) = launchMain {
+    Snackbar.make(this@showSnackBar, message, Snackbar.LENGTH_INDEFINITE).show()
 }
 
 fun Spinner.onSelectionChanged(callback: (Int) -> Unit) {

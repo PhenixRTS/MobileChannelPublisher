@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.phenixdeeplink
@@ -8,25 +8,48 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.phenixrts.suite.phenixdeeplink.cache.ConfigurationProvider
-import com.phenixrts.suite.phenixdeeplink.common.*
+import com.phenixrts.suite.phenixdeeplink.models.*
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import timber.log.Timber
 
 abstract class DeepLinkActivity : AppCompatActivity() {
 
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
     private val configurationProvider by lazy { ConfigurationProvider(this) }
+    private val configuration: HashMap<String, String> = hashMapOf(
+        QUERY_AUTH_TOKEN to "",
+        QUERY_ACTS to "",
+        QUERY_BACKEND to BuildConfig.BACKEND_URL,
+        QUERY_CHANNEL_ALIASES to "",
+        QUERY_EDGE_TOKEN to "",
+        QUERY_MIME_TYPES to BuildConfig.MIME_TYPES,
+        QUERY_PUBLISH_TOKEN to "",
+        QUERY_STREAM_IDS to "",
+        QUERY_URI to BuildConfig.PCAST_URL,
+        QUERY_VIDEO_COUNT to BuildConfig.MAX_VIDEO_MEMBERS
+    )
 
     abstract val additionalConfiguration: HashMap<String, String>
 
-    val configuration: HashMap<String, String> = hashMapOf(
-        QUERY_URI to BuildConfig.PCAST_URL,
-        QUERY_BACKEND to BuildConfig.BACKEND_URL,
-        QUERY_EDGE_TOKEN to "",
-        QUERY_AUTH_TOKEN to "",
-        QUERY_PUBLISH_TOKEN to "",
-        QUERY_MIME_TYPES to BuildConfig.MIME_TYPES,
-        QUERY_CHANNEL_ALIAS to ""
+    abstract fun isAlreadyInitialized(): Boolean
+
+    abstract fun onDeepLinkQueried(
+        status: DeepLinkStatus,
+        configuration: PhenixDeepLinkConfiguration,
+        rawConfiguration: Map<String, String>,
+        deepLink: String
     )
+
+    open var defaultBackend = BuildConfig.BACKEND_URL
+    open var defaultStagingBackend = BuildConfig.STAGING_BACKEND_URL
+    open var defaultUri = BuildConfig.PCAST_URL
+    open var defaultStagingUri = BuildConfig.STAGING_PCAST_URL
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +68,8 @@ abstract class DeepLinkActivity : AppCompatActivity() {
     }
 
     private fun updateConfiguration(intent: Intent) {
+        var path = ""
+        var status = DeepLinkStatus.READY
         configuration.putAll(additionalConfiguration)
         Timber.d("Checking deep link: ${intent.data}, $configuration")
         if (configurationProvider.hasConfiguration()) {
@@ -56,21 +81,22 @@ abstract class DeepLinkActivity : AppCompatActivity() {
             }
         } else {
             intent.data?.let { deepLink ->
-                val isStagingUri = deepLink.toString().contains(QUERY_STAGING)
+                path = deepLink.toString()
+                val isStagingUri = path.contains(STAGING_URI)
                 Timber.d("Loading configuration from deep link: $deepLink")
-                deepLink.toString().takeIf { it.contains(QUERY_CHANNEL) }?.substringAfterLast(QUERY_CHANNEL)?.run {
-                    configuration[QUERY_CHANNEL_ALIAS] = this
+                path.takeIf { it.contains(QUERY_CHANNEL) }?.substringAfterLast(QUERY_CHANNEL)?.run {
+                    configuration[QUERY_CHANNEL_ALIASES] = this
                 }
                 configuration.keys.forEach { key ->
                     when (key) {
                         QUERY_URI -> {
                             val value = deepLink.getQueryParameter(QUERY_URI) ?: if (isStagingUri)
-                                BuildConfig.STAGING_PCAST_URL else BuildConfig.PCAST_URL
+                                defaultStagingUri else defaultUri
                             configuration[key] = value
                         }
                         QUERY_BACKEND -> {
                             val value = deepLink.getQueryParameter(QUERY_BACKEND) ?: if (isStagingUri)
-                                BuildConfig.STAGING_BACKEND_URL else BuildConfig.BACKEND_URL
+                                defaultStagingBackend else defaultBackend
                             configuration[key] = value
                         }
                         else -> {
@@ -82,23 +108,20 @@ abstract class DeepLinkActivity : AppCompatActivity() {
                 }
                 if (isAlreadyInitialized()) {
                     Timber.d("Configuration already loaded")
-                    configurationProvider.saveConfiguration(JSONObject(configuration as Map<*, *>).toString())
-                    onDeepLinkQueried(DeepLinkStatus.RELOAD)
+                    configurationProvider.saveConfiguration(configuration.toJson())
+                    status = DeepLinkStatus.RELOAD
                     return
                 }
             }
         }
         Timber.d("Configuration updated: $configuration")
         configurationProvider.saveConfiguration(null)
-        onDeepLinkQueried(DeepLinkStatus.READY)
+        onDeepLinkQueried(status, configuration.asConfigurationModel(), configuration, path)
     }
 
-    abstract fun isAlreadyInitialized(): Boolean
+    private fun HashMap<String, String>.asConfigurationModel() =
+        json.decodeFromString<PhenixDeepLinkConfiguration>(JSONObject(this as Map<*, *>).toString())
 
-    abstract fun onDeepLinkQueried(status: DeepLinkStatus)
-}
+    private inline fun <reified T> T.toJson() = json.encodeToString(this)
 
-enum class DeepLinkStatus {
-    RELOAD,
-    READY
 }

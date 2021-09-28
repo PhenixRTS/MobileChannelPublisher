@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.ui
@@ -10,7 +10,8 @@ import android.content.pm.PackageManager.PERMISSION_GRANTED
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.phenixrts.suite.phenixdeeplink.DeepLinkActivity
-import com.phenixrts.suite.phenixdeeplink.DeepLinkStatus
+import com.phenixrts.suite.phenixdeeplink.models.DeepLinkStatus
+import com.phenixrts.suite.phenixdeeplink.models.PhenixDeepLinkConfiguration
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -59,7 +60,12 @@ open class EasyPermissionActivity : DeepLinkActivity() {
 
     override fun isAlreadyInitialized(): Boolean = false
 
-    override fun onDeepLinkQueried(status: DeepLinkStatus) {
+    override fun onDeepLinkQueried(
+        status: DeepLinkStatus,
+        configuration: PhenixDeepLinkConfiguration,
+        rawConfiguration: Map<String, String>,
+        deepLink: String
+    ) {
         /* Ignored */
     }
 

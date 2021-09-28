@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.phenixdeeplink.cache
@@ -7,10 +7,10 @@ package com.phenixrts.suite.phenixdeeplink.cache
 import android.content.Context
 import android.content.SharedPreferences
 
-private const val APP_PREFERENCES = "group_preferences"
+private const val APP_PREFERENCES = "deep_link_preferences"
 private const val CONFIGURATION = "configuration"
 
-class ConfigurationProvider(private val context: Context) {
+internal class ConfigurationProvider(private val context: Context) {
 
     private val preferences: SharedPreferences by lazy {
         context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)

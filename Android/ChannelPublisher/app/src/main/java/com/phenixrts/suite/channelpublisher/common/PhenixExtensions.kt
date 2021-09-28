@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.common
@@ -10,27 +10,10 @@ import com.phenixrts.pcast.UserMediaOptions
 import com.phenixrts.pcast.UserMediaStream
 import com.phenixrts.room.RoomService
 import com.phenixrts.suite.channelpublisher.common.enums.StreamStatus
-import kotlinx.coroutines.*
+import com.phenixrts.suite.phenixcommon.common.launchMain
 import timber.log.Timber
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-
-private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-private val ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
-fun launchMain(block: suspend CoroutineScope.() -> Unit) = mainScope.launch(
-    context = CoroutineExceptionHandler { _, e ->
-        Timber.w(e, "Coroutine failed: ${e.localizedMessage}")
-    },
-    block = block
-)
-
-fun launchIO(block: suspend CoroutineScope.() -> Unit) = ioScope.launch(
-    context = CoroutineExceptionHandler { _, e ->
-        Timber.w(e, "Coroutine failed: ${e.localizedMessage}")
-    },
-    block = block
-)
 
 suspend fun PCastExpress.waitForOnline() = suspendCoroutine<Unit> { continuation ->
     waitForOnline {

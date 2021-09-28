@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.common
@@ -9,7 +9,7 @@ import com.phenixrts.express.PCastExpressFactory
 import com.phenixrts.express.PublishToChannelOptions
 import com.phenixrts.pcast.*
 import com.phenixrts.room.RoomServiceFactory
-import com.phenixrts.suite.phenixdeeplink.common.ChannelConfiguration
+import com.phenixrts.suite.phenixdeeplink.models.PhenixDeepLinkConfiguration
 import timber.log.Timber
 
 private val CAMERA_OPTIONS = listOf(FacingMode.USER, FacingMode.ENVIRONMENT, FacingMode.UNDEFINED)
@@ -36,7 +36,7 @@ data class PublishConfiguration(
     val capabilities: List<String>
 )
 
-fun getPublishToChannelOptions(publishConfig: PublishConfiguration, channelConfig: ChannelConfiguration,
+fun getPublishToChannelOptions(publishConfig: PublishConfiguration, configuration: PhenixDeepLinkConfiguration,
                                userMediaStream: UserMediaStream): PublishToChannelOptions {
     val channelOptions = RoomServiceFactory.createChannelOptionsBuilder()
          // TODO: If name is not set - publish callback returns FAILED without any extra explanation why
@@ -45,9 +45,9 @@ fun getPublishToChannelOptions(publishConfig: PublishConfiguration, channelConfi
         .buildChannelOptions()
     var publishOptionsBuilder = PCastExpressFactory.createPublishOptionsBuilder()
         .withUserMedia(userMediaStream)
-    publishOptionsBuilder = if (!channelConfig.publishToken.isNullOrBlank()) {
-        Timber.d("Publishing with publish token: ${channelConfig.publishToken}")
-        publishOptionsBuilder.withStreamToken(channelConfig.publishToken).withSkipRetryOnUnauthorized()
+    publishOptionsBuilder = if (!configuration.publishToken.isNullOrBlank()) {
+        Timber.d("Publishing with publish token: ${configuration.publishToken}")
+        publishOptionsBuilder.withStreamToken(configuration.publishToken).withSkipRetryOnUnauthorized()
     } else {
         Timber.d("Publishing with capabilities")
         publishOptionsBuilder.withCapabilities(publishConfig.capabilities.toTypedArray())

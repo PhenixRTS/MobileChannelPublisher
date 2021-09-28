@@ -1,10 +1,9 @@
 /*
- * Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.ui
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -19,11 +18,11 @@ import com.phenixrts.suite.channelpublisher.repositories.ChannelExpressRepositor
 import com.phenixrts.suite.channelpublisher.ui.viewmodel.ChannelViewModel
 import com.phenixrts.suite.phenixcommon.DebugMenu
 import com.phenixrts.suite.phenixcommon.common.FileWriterDebugTree
+import com.phenixrts.suite.phenixcommon.common.launchMain
 import com.phenixrts.suite.phenixcommon.common.showToast
+import kotlinx.coroutines.flow.collect
 import timber.log.Timber
 import javax.inject.Inject
-
-const val EXTRA_DEEP_LINK_MODEL = "ExtraDeepLinkModel"
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,9 +30,10 @@ class MainActivity : AppCompatActivity() {
     @Inject lateinit var fileWriterTree: FileWriterDebugTree
     private lateinit var binding: ActivityMainBinding
 
-    private val viewModel: ChannelViewModel by lazyViewModel({ application as ChannelPublisherApplication }, {
-        ChannelViewModel(channelExpressRepository)
-    })
+    private val viewModel: ChannelViewModel by lazyViewModel(
+        { application as ChannelPublisherApplication },
+        { ChannelViewModel(channelExpressRepository) }
+    )
     private val debugMenu: DebugMenu by lazy {
         DebugMenu(fileWriterTree, channelExpressRepository.roomExpress, binding.root, { files ->
             debugMenu.showAppChooser(this, files)
@@ -49,23 +49,27 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         initializeDropDowns()
 
-        viewModel.onChannelExpressError.observe(this, { error ->
-            Timber.d("Channel Express failed: $error")
-            showErrorDialog(error)
-        })
-        viewModel.onChannelState.observe(this, { status ->
-            Timber.d("Stream state changed: $status")
-            hideLoading()
-            if (status == StreamStatus.CONNECTED) {
-                hideConfigurationOverlay()
-            } else {
-                showConfigurationOverlay()
+        launchMain {
+            viewModel.onChannelExpressError.collect { error ->
+                Timber.d("Channel Express failed: $error")
+                showErrorDialog(error)
             }
-            if (status == StreamStatus.FAILED) {
-                Timber.d("Stream failed")
-                showErrorDialog(ExpressError.STREAM_ERROR)
+        }
+        launchMain {
+            viewModel.onChannelState.collect { status ->
+                Timber.d("Stream state changed: $status")
+                hideLoading()
+                if (status == StreamStatus.CONNECTED) {
+                    hideConfigurationOverlay()
+                } else {
+                    showConfigurationOverlay()
+                }
+                if (status == StreamStatus.FAILED) {
+                    Timber.d("Stream failed")
+                    showErrorDialog(ExpressError.STREAM_ERROR)
+                }
             }
-        })
+        }
 
         binding.configuration.publishButton.setOnClickListener {
             Timber.d("Publish button clicked")
@@ -82,7 +86,6 @@ class MainActivity : AppCompatActivity() {
             debugMenu.onScreenTapped()
         }
 
-        checkDeepLink(intent)
         viewModel.showPublisherPreview(binding.channelSurface.holder)
         debugMenu.onStart(getString(R.string.debug_app_version,
             BuildConfig.VERSION_NAME,
@@ -91,12 +94,6 @@ class MainActivity : AppCompatActivity() {
             com.phenixrts.sdk.BuildConfig.VERSION_NAME,
             com.phenixrts.sdk.BuildConfig.VERSION_CODE
         ))
-    }
-
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-        Timber.d("On new intent $intent")
-        checkDeepLink(intent)
     }
 
     override fun onDestroy() {
@@ -166,19 +163,6 @@ class MainActivity : AppCompatActivity() {
     private fun hideConfigurationOverlay() {
         binding.configuration.root.visibility = View.GONE
         binding.endStreamButton.visibility = View.VISIBLE
-    }
-
-    private fun checkDeepLink(intent: Intent?) = launchMain {
-        intent?.let { intent ->
-            if (intent.hasExtra(EXTRA_DEEP_LINK_MODEL)) {
-                (intent.getStringExtra(EXTRA_DEEP_LINK_MODEL))?.let { channelAlias ->
-                    Timber.d("Received channel code: $channelAlias")
-                    viewModel.channelAlias = channelAlias
-                }
-                intent.removeExtra(EXTRA_DEEP_LINK_MODEL)
-                return@launchMain
-            }
-        }
     }
 
     private fun getPublishConfiguration(): PublishConfiguration {

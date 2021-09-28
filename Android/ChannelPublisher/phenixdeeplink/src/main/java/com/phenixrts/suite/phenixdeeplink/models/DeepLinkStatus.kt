@@ -1,7 +1,10 @@
 /*
  * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
-include ':common'
-include ':phenixdeeplink'
-include ':app'
-rootProject.name='Channel Publisher'
+
+package com.phenixrts.suite.phenixdeeplink.models
+
+enum class DeepLinkStatus {
+    RELOAD,
+    READY
+}
