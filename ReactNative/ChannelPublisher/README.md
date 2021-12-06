@@ -26,7 +26,7 @@ Required:
 3. Open ChannelPublisher.xcworkspace with Xcode
 4. Navigate to Project Settings - Signing & Capabilities
 5. Select your development team
-### This project was started on Xcode 12.0, COCOAPODS 1.10.2.
+### This project was started on Xcode 13.1, COCOAPODS 1.10.2.
 
 ## How to Run iOS
 1. cd ReactNative/ChannelPublisher:
@@ -71,4 +71,4 @@ In some cases in gradle.properties add:
 * [Channel Publisher Tutorial](https://phenixrts.com/docs/web/react-native/#web-sdk-react-native-example)
 * [Phenix Channel Express API](https://phenixrts.com/docs/web/#channel-express)
 * [React Native Support](https://phenixrts.com/docs/web/#react-native-support)
-* [Phenix Platform Documentation](http://phenixrts.com/docs/)
+* [Phenix Platform Documentation](https://phenixrts.com/docs/)
