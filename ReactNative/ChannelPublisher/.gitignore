@@ -1,6 +1,7 @@
 # OSX
 #
 .DS_Store
+../.DS_Store
 
 # Xcode
 #
@@ -23,7 +24,6 @@ DerivedData
 
 # Android/IntelliJ
 #
-build/
 .idea
 .gradle
 local.properties

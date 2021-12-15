@@ -11,7 +11,7 @@
     "lint-fix": "eslint --fix 'src/*.{ts,tsx,js}'"
   },
   "dependencies": {
-    "phenix-web-sdk": "2021.2.0",
+    "phenix-web-sdk": "2021.2.1",
     "react": "17.0.2",
     "react-native": "0.66.1",
     "react-native-nodemediaclient": "0.2.17",
