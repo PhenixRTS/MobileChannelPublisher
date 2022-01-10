@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.ui
@@ -12,52 +12,53 @@ import android.os.Looper
 import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
 import com.phenixrts.suite.channelpublisher.R
 import com.phenixrts.suite.channelpublisher.common.*
-import com.phenixrts.suite.channelpublisher.common.enums.ExpressError
 import com.phenixrts.suite.channelpublisher.databinding.ActivitySplashBinding
-import com.phenixrts.suite.channelpublisher.repositories.ChannelExpressRepository
-import com.phenixrts.suite.channelpublisher.ui.viewmodel.ChannelViewModel
-import com.phenixrts.suite.phenixcommon.common.launchMain
-import com.phenixrts.suite.phenixdeeplink.models.DeepLinkStatus
-import com.phenixrts.suite.phenixdeeplink.models.PhenixDeepLinkConfiguration
-import kotlinx.coroutines.flow.collect
+import com.phenixrts.suite.phenixcore.common.launchUI
+import com.phenixrts.suite.phenixcore.repositories.models.PhenixError
+import com.phenixrts.suite.phenixcore.repositories.models.PhenixEvent
+import com.phenixrts.suite.phenixdeeplinks.common.init
+import com.phenixrts.suite.phenixdeeplinks.models.DeepLinkStatus
+import com.phenixrts.suite.phenixdeeplinks.models.PhenixDeepLinkConfiguration
 import timber.log.Timber
-import javax.inject.Inject
 
 private const val TIMEOUT_DELAY = 10000L
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : EasyPermissionActivity() {
 
-    @Inject lateinit var channelExpress: ChannelExpressRepository
     private lateinit var binding: ActivitySplashBinding
-
-    private val viewModel: ChannelViewModel by lazyViewModel(
-        { application as ChannelPublisherApplication },
-        { ChannelViewModel(channelExpress) }
-    )
 
     private val timeoutHandler = Handler(Looper.getMainLooper())
     private val timeoutRunnable = Runnable {
-        launchMain {
+        launchUI {
             binding.root.showSnackBar(getString(R.string.err_network_problems))
         }
     }
 
-    override val additionalConfiguration: HashMap<String, String>
-        get() = hashMapOf()
+    override fun isAlreadyInitialized() = phenixCore.isInitialized
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Timber.d("Splash activity created")
+        super.onCreate(savedInstanceState)
         ChannelPublisherApplication.component.inject(this)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        launchMain {
-            channelExpress.onError.collect { error ->
-                Timber.d("Channel express failed")
-                showErrorDialog(error)
+        launchUI {
+            phenixCore.onError.collect { error ->
+                if (error == PhenixError.FAILED_TO_INITIALIZE) {
+                    Timber.d("Splash: Failed to initialize Phenix Core: $error")
+                    showErrorDialog(error.message)
+                }
             }
         }
-        Timber.d("Splash activity created")
-        super.onCreate(savedInstanceState)
+        launchUI {
+            phenixCore.onEvent.collect { event ->
+                Timber.d("Splash: Phenix core event: $event")
+                if (event == PhenixEvent.PHENIX_CORE_INITIALIZED) {
+                    showLandingScreen()
+                }
+            }
+        }
     }
 
     override fun onDeepLinkQueried(
@@ -66,15 +67,15 @@ class SplashActivity : EasyPermissionActivity() {
         rawConfiguration: Map<String, String>,
         deepLink: String
     ) {
-        launchMain {
+        launchUI {
             when (status) {
-                DeepLinkStatus.RELOAD -> showErrorDialog(ExpressError.CONFIGURATION_CHANGED_ERROR)
+                DeepLinkStatus.RELOAD -> showErrorDialog(getString(R.string.err_configuration_changed))
                 DeepLinkStatus.READY -> if (arePermissionsGranted()) {
-                    showLandingScreen(configuration)
+                    initializePhenixCore(configuration)
                 } else {
                     askForPermissions { granted ->
                         if (granted) {
-                            showLandingScreen(configuration)
+                            initializePhenixCore(configuration)
                         } else {
                             onDeepLinkQueried(status, configuration, rawConfiguration, deepLink)
                         }
@@ -84,20 +85,21 @@ class SplashActivity : EasyPermissionActivity() {
         }
     }
 
-    override fun isAlreadyInitialized(): Boolean = channelExpress.isChannelExpressInitialized()
-
-    private fun showLandingScreen(configuration: PhenixDeepLinkConfiguration) = launchMain {
-        if (configuration.channels.isEmpty()) {
-            showErrorDialog(ExpressError.DEEP_LINK_ERROR)
-            return@launchMain
-        }
-        Timber.d("Waiting for PCast")
-        viewModel.channelAlias = configuration.channels.first()
+    private fun initializePhenixCore(configuration: PhenixDeepLinkConfiguration) {
         timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT_DELAY)
-        channelExpress.setupChannelExpress(configuration)
-        channelExpress.waitForPCast()
+        Timber.d("Initializing phenix core: $configuration")
+        phenixCore.init(configuration)
+    }
+
+    private fun showLandingScreen() = launchUI {
+        val channelAlias = phenixCore.configuration?.selectedAlias?.takeIf { it.isNotBlank() }
+            ?: phenixCore.configuration?.channelAliases?.firstOrNull()
+        if (channelAlias == null) {
+            showErrorDialog(getString(R.string.err_invalid_deep_link))
+            return@launchUI
+        }
         timeoutHandler.removeCallbacks(timeoutRunnable)
-        Timber.d("Navigating to Landing Screen")
+        Timber.d("Navigating to Landing Screen: $channelAlias")
         startActivity(Intent(this@SplashActivity, MainActivity::class.java))
         finish()
     }

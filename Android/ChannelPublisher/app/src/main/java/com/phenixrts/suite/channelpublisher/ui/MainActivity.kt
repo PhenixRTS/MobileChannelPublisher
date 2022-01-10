@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.ui
@@ -11,36 +11,25 @@ import com.phenixrts.suite.channelpublisher.BuildConfig
 import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
 import com.phenixrts.suite.channelpublisher.R
 import com.phenixrts.suite.channelpublisher.common.*
-import com.phenixrts.suite.channelpublisher.common.enums.ExpressError
-import com.phenixrts.suite.channelpublisher.common.enums.StreamStatus
 import com.phenixrts.suite.channelpublisher.databinding.ActivityMainBinding
-import com.phenixrts.suite.channelpublisher.repositories.ChannelExpressRepository
 import com.phenixrts.suite.channelpublisher.ui.viewmodel.ChannelViewModel
-import com.phenixrts.suite.phenixcommon.DebugMenu
-import com.phenixrts.suite.phenixcommon.common.FileWriterDebugTree
-import com.phenixrts.suite.phenixcommon.common.launchMain
-import com.phenixrts.suite.phenixcommon.common.showToast
-import kotlinx.coroutines.flow.collect
+import com.phenixrts.suite.phenixcore.common.launchUI
+import com.phenixrts.suite.phenixcore.PhenixCore
+import com.phenixrts.suite.phenixcore.repositories.models.PhenixEvent
+import com.phenixrts.suite.phenixcore.repositories.models.PhenixPublishConfiguration
 import timber.log.Timber
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
 
-    @Inject lateinit var channelExpressRepository: ChannelExpressRepository
-    @Inject lateinit var fileWriterTree: FileWriterDebugTree
+    @Inject lateinit var phenixCore: PhenixCore
+
     private lateinit var binding: ActivityMainBinding
 
     private val viewModel: ChannelViewModel by lazyViewModel(
         { application as ChannelPublisherApplication },
-        { ChannelViewModel(channelExpressRepository) }
+        { ChannelViewModel(phenixCore) }
     )
-    private val debugMenu: DebugMenu by lazy {
-        DebugMenu(fileWriterTree, channelExpressRepository.roomExpress, binding.root, { files ->
-            debugMenu.showAppChooser(this, files)
-        }, { error ->
-            showToast(getString(error))
-        })
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,24 +38,23 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         initializeDropDowns()
 
-        launchMain {
-            viewModel.onChannelExpressError.collect { error ->
-                Timber.d("Channel Express failed: $error")
-                showErrorDialog(error)
+        launchUI {
+            viewModel.onError.collect { error ->
+                Timber.d("Channel Publisher failed: $error")
+                binding.root.showSnackBar(error.message)
             }
         }
-        launchMain {
-            viewModel.onChannelState.collect { status ->
-                Timber.d("Stream state changed: $status")
-                hideLoading()
-                if (status == StreamStatus.CONNECTED) {
-                    hideConfigurationOverlay()
-                } else {
-                    showConfigurationOverlay()
-                }
-                if (status == StreamStatus.FAILED) {
-                    Timber.d("Stream failed")
-                    showErrorDialog(ExpressError.STREAM_ERROR)
+        launchUI {
+            viewModel.onEvent.collect { event ->
+                Timber.d("Channel Publisher event: $event")
+                when (event) {
+                    PhenixEvent.PHENIX_CHANNEL_PUBLISHING -> showLoading()
+                    PhenixEvent.PHENIX_CHANNEL_PUBLISHED -> {
+                        hideLoading()
+                        hideConfigurationOverlay()
+                    }
+                    PhenixEvent.PHENIX_CHANNEL_PUBLISH_ENDED -> showConfigurationOverlay()
+                    else -> { /* Ignored */ }
                 }
             }
         }
@@ -74,7 +62,10 @@ class MainActivity : AppCompatActivity() {
         binding.configuration.publishButton.setOnClickListener {
             Timber.d("Publish button clicked")
             showLoading()
-            viewModel.publishToChannel(getPublishConfiguration(), binding.channelSurface.holder)
+            viewModel.publishToChannel(
+                capabilities = getCapabilities().plus(getStreamQuality()),
+                configuration = getPublishConfiguration()
+            )
         }
 
         binding.endStreamButton.setOnClickListener {
@@ -82,27 +73,33 @@ class MainActivity : AppCompatActivity() {
             viewModel.stopPublishing()
         }
 
-        binding.menuOverlay.setOnClickListener {
-            debugMenu.onScreenTapped()
-        }
-
-        viewModel.showPublisherPreview(binding.channelSurface.holder)
-        debugMenu.onStart(getString(R.string.debug_app_version,
+        viewModel.observeDebugMenu(
+            binding.debugMenu,
+            onError = {
+                binding.root.showSnackBar(getString(R.string.err_share_logs_failed))
+            },
+            onShow = {
+                binding.debugMenu.showAppChooser(this@MainActivity)
+            }
+        )
+        binding.debugMenu.onStart(getString(R.string.debug_app_version,
             BuildConfig.VERSION_NAME,
             BuildConfig.VERSION_CODE
         ), getString(R.string.debug_sdk_version,
             com.phenixrts.sdk.BuildConfig.VERSION_NAME,
             com.phenixrts.sdk.BuildConfig.VERSION_CODE
         ))
+
+        viewModel.showPublisherPreview(binding.channelSurface)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        debugMenu.onStop()
+        binding.debugMenu.onStop()
     }
 
     override fun onBackPressed() {
-        if (debugMenu.isClosed()){
+        if (binding.debugMenu.isClosed()){
             super.onBackPressed()
         }
     }
@@ -165,15 +162,11 @@ class MainActivity : AppCompatActivity() {
         binding.endStreamButton.visibility = View.VISIBLE
     }
 
-    private fun getPublishConfiguration(): PublishConfiguration {
-        val cameraFacing = getCameraFacing()
-        val cameraFps = getCameraFps()
-        val streamQuality = getStreamQuality()
-        val capabilities = getCapabilities().plus(streamQuality)
-        val echoCancellationMode = getEchoCancellation()
-        val microphoneEnabled = getMicrophoneEnabled()
-        return PublishConfiguration(viewModel.channelAlias, cameraFacing, cameraFps, microphoneEnabled,
-            echoCancellationMode, capabilities)
-    }
+    private fun getPublishConfiguration() = PhenixPublishConfiguration(
+        cameraFacingMode = getCameraFacing(),
+        cameraFps = getCameraFps().toDouble(),
+        microphoneEnabled = getMicrophoneEnabled(),
+        echoCancellationMode = getEchoCancellation()
+    )
 
 }

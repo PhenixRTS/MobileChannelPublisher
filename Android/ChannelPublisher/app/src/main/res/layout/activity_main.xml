@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+  ~ Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
   -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -85,6 +85,15 @@
                 app:layout_constraintStart_toStartOf="parent" />
 
         </FrameLayout>
+
+        <com.phenixrts.suite.phenixdebugmenu.DebugMenu
+            android:id="@+id/debug_menu"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

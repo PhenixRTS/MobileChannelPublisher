@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+  ~ Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
   -->
 
 <resources>
@@ -12,6 +12,7 @@
         <item name="android:textColorPrimary">@color/primaryTextColor</item>
         <item name="android:windowActionBarOverlay">true</item>
         <item name="windowActionBarOverlay">true</item>
+        <item name="android:navigationBarColor">@color/primaryDarkColor</item>
         <item name="android:windowBackground">@drawable/bg_splash</item>
         <item name="android:spinnerDropDownItemStyle">@style/SpinnerTheme</item>
     </style>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.common
@@ -11,8 +11,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import com.phenixrts.suite.channelpublisher.R
-import com.phenixrts.suite.channelpublisher.common.enums.ExpressError
-import com.phenixrts.suite.phenixcommon.common.launchMain
+import com.phenixrts.suite.phenixcore.common.launchMain
 import kotlin.system.exitProcess
 
 private fun AppCompatActivity.closeApp() {
@@ -21,24 +20,13 @@ private fun AppCompatActivity.closeApp() {
     exitProcess(0)
 }
 
-private fun AppCompatActivity.getErrorMessage(error: ExpressError): String {
-    return when (error) {
-        ExpressError.DEEP_LINK_ERROR -> getString(R.string.err_invalid_deep_link)
-        ExpressError.UNRECOVERABLE_ERROR -> getString(R.string.err_unrecoverable_error)
-        ExpressError.STREAM_ERROR -> getString(R.string.err_stream_error)
-        ExpressError.CONFIGURATION_CHANGED_ERROR -> getString(R.string.err_configuration_changed)
-    }
-}
-
-fun AppCompatActivity.showErrorDialog(error: ExpressError) {
+fun AppCompatActivity.showErrorDialog(error: String) {
     AlertDialog.Builder(this, R.style.AlertDialogTheme)
         .setCancelable(false)
-        .setMessage(getErrorMessage(error))
+        .setMessage(error)
         .setPositiveButton(getString(R.string.popup_ok)) { dialog, _ ->
             dialog.dismiss()
-            if (error != ExpressError.STREAM_ERROR) {
-                closeApp()
-            }
+            closeApp()
         }
         .create()
         .show()

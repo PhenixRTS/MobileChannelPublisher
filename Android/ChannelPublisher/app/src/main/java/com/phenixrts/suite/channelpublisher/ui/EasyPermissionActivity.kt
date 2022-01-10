@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.ui
@@ -7,24 +7,36 @@ package com.phenixrts.suite.channelpublisher.ui
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.phenixrts.suite.phenixdeeplink.DeepLinkActivity
-import com.phenixrts.suite.phenixdeeplink.models.DeepLinkStatus
-import com.phenixrts.suite.phenixdeeplink.models.PhenixDeepLinkConfiguration
+import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
+import com.phenixrts.suite.phenixcore.PhenixCore
+import com.phenixrts.suite.phenixdeeplinks.DeepLinkActivity
 import java.util.*
-import kotlin.collections.HashMap
+import javax.inject.Inject
 
 @SuppressLint("Registered")
-open class EasyPermissionActivity : DeepLinkActivity() {
+abstract class EasyPermissionActivity : DeepLinkActivity() {
+
+    @Inject lateinit var phenixCore: PhenixCore
 
     private val permissionRequestHistory = hashMapOf<Int, (a: Boolean) -> Unit>()
 
-    private fun hasCameraPermission(): Boolean =
-        ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PERMISSION_GRANTED
+    override val additionalConfiguration = hashMapOf<String, String>()
 
-    private fun hasRecordAudioPermission(): Boolean =
-        ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PERMISSION_GRANTED
+    override fun onCreate(savedInstanceState: Bundle?) {
+        ChannelPublisherApplication.component.inject(this)
+        super.onCreate(savedInstanceState)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        permissionRequestHistory[requestCode]?.run {
+            this(grantResults.isNotEmpty() && grantResults[0] == PERMISSION_GRANTED)
+            permissionRequestHistory.remove(requestCode)
+        }
+    }
 
     fun arePermissionsGranted(): Boolean = hasCameraPermission() && hasRecordAudioPermission()
 
@@ -47,28 +59,12 @@ open class EasyPermissionActivity : DeepLinkActivity() {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        permissionRequestHistory[requestCode]?.run {
-            this(grantResults.isNotEmpty() && grantResults[0] == PERMISSION_GRANTED)
-            permissionRequestHistory.remove(requestCode)
-        }
-    }
-
-    override val additionalConfiguration: HashMap<String, String>
-        get() = HashMap()
-
-    override fun isAlreadyInitialized(): Boolean = false
-
-    override fun onDeepLinkQueried(
-        status: DeepLinkStatus,
-        configuration: PhenixDeepLinkConfiguration,
-        rawConfiguration: Map<String, String>,
-        deepLink: String
-    ) {
-        /* Ignored */
-    }
-
     private fun Int.low16bits() = this and 0xFFFF
+
+    private fun hasCameraPermission(): Boolean =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PERMISSION_GRANTED
+
+    private fun hasRecordAudioPermission(): Boolean =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PERMISSION_GRANTED
 
 }
