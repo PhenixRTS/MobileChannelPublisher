@@ -9,12 +9,12 @@ import android.widget.ImageView
 import com.phenixrts.common.RequestStatus
 import com.phenixrts.express.ChannelExpress
 import com.phenixrts.express.ExpressPublisher
-import com.phenixrts.pcast.UserMediaStream
 import com.phenixrts.room.RoomService
 import com.phenixrts.suite.phenixcore.common.ConsumableSharedFlow
 import com.phenixrts.suite.phenixcore.common.asPhenixChannels
 import com.phenixrts.suite.phenixcore.common.launchIO
 import com.phenixrts.suite.phenixcore.repositories.channel.models.PhenixCoreChannel
+import com.phenixrts.suite.phenixcore.repositories.core.UserMediaStreamProvider
 import com.phenixrts.suite.phenixcore.repositories.core.common.getPublishToChannelOptions
 import com.phenixrts.suite.phenixcore.repositories.models.*
 import kotlinx.coroutines.flow.*
@@ -22,7 +22,7 @@ import timber.log.Timber
 
 internal class PhenixChannelRepository(
     private val channelExpress: ChannelExpress,
-    private val userMediaStream: UserMediaStream,
+    private val userMediaStreamProvider: UserMediaStreamProvider,
     private val configuration: PhenixConfiguration
 ) {
     private val pCastExpress = channelExpress.roomExpress!!.pCastExpress
@@ -94,7 +94,7 @@ internal class PhenixChannelRepository(
         Timber.d("Publishing to channel: $phenixChannelConfiguration")
         _onEvent.tryEmit(PhenixEvent.PHENIX_CHANNEL_PUBLISHING)
         channelExpress.publishToChannel(
-            getPublishToChannelOptions(configuration, phenixChannelConfiguration, userMediaStream)
+            getPublishToChannelOptions(configuration, phenixChannelConfiguration, userMediaStreamProvider.getUserMediaStream()!!)
         ) { status: RequestStatus?, service: RoomService?, expressPublisher: ExpressPublisher? ->
             Timber.d("Stream is published: $status")
             publisher = expressPublisher

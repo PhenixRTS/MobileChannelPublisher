@@ -36,7 +36,7 @@ internal class PhenixCoreRepository(
     private var roomExpress: RoomExpress? = null
     private var channelRepository: PhenixChannelRepository? = null
     private var roomRepository: PhenixRoomRepository? = null
-    private var userMediaStream: UserMediaStream? = null
+    private val userMediaStreamRepository: UserMediaStreamRepository = UserMediaStreamRepository()
 
     private var _phenixState = PhenixCoreState.NOT_INITIALIZED
     private val _onError = ConsumableSharedFlow<PhenixError>()
@@ -97,9 +97,9 @@ internal class PhenixCoreRepository(
             express.roomExpress?.pCastExpress?.waitForOnline {
                 Timber.d("Phenix Core initialized")
                 express.roomExpress.pCastExpress.getUserMedia { userMedia ->
-                    userMediaStream = userMedia
+                    userMediaStreamRepository.setUserMediaStream(userMedia)
                     roomExpress = express.roomExpress
-                    channelRepository = PhenixChannelRepository(express, userMedia, configuration)
+                    channelRepository = PhenixChannelRepository(express, userMediaStreamRepository, configuration)
                     roomRepository = PhenixRoomRepository(express.roomExpress, userMedia, configuration)
                     _phenixState = PhenixCoreState.INITIALIZED
                     _onEvent.tryEmit(PhenixEvent.PHENIX_CORE_INITIALIZED)
@@ -133,17 +133,16 @@ internal class PhenixCoreRepository(
         // TODO: Applying new options can return BAD_REQUEST and after that user media stream is re-required;
         //  The re-required user media stream is showing the preview, but it's not being streamed;
         //  Channel viewers see only black-screen until the channel times out.
-        userMediaStream?.applyOptions(getUserMediaOptions(publishConfiguration))?.let { optionStatus ->
+        userMediaStreamRepository.applyOptions(getUserMediaOptions(publishConfiguration))?.let { optionStatus ->
             Timber.d("Updated user media stream configuration: $optionStatus, $configuration")
             if (optionStatus != RequestStatus.OK) {
-                userMediaStream?.dispose()
-                userMediaStream = null
+                userMediaStreamRepository.dispose()
                 // TODO: The new user media stream is not working when used for publishing although the local preview works
                 Timber.d("Failed to update user media stream settings, requesting new user media object")
                 roomExpress?.pCastExpress?.getUserMedia(getUserMediaOptions(publishConfiguration)) { status, userMedia ->
                     if (status == RequestStatus.OK) {
-                        userMediaStream = userMedia
-                        Timber.d("Collected new media stream from pCast: $userMediaStream")
+                        userMediaStreamRepository.setUserMediaStream(userMedia)
+                        Timber.d("Collected new media stream from pCast: $userMedia")
                         channelRepository?.publishToChannel(configuration)
                     } else {
                         _onError.tryEmit(PhenixError.PUBLISH_CHANNEL_FAILED.apply { data = configuration })
@@ -258,8 +257,7 @@ internal class PhenixCoreRepository(
         roomRepository?.release()
 
         configuration = PhenixConfiguration()
-        userMediaStream?.dispose()
-        userMediaStream = null
+        userMediaStreamRepository.dispose()
         roomExpress = null
         channelRepository = null
         roomRepository = null
