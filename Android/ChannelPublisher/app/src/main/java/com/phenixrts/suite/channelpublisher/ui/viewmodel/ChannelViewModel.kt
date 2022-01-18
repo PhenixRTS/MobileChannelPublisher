@@ -8,15 +8,29 @@ import android.view.SurfaceView
 import androidx.lifecycle.ViewModel
 import com.phenixrts.suite.channelpublisher.BuildConfig
 import com.phenixrts.suite.phenixcore.PhenixCore
+import com.phenixrts.suite.phenixcore.common.launch
 import com.phenixrts.suite.phenixcore.repositories.models.PhenixChannelConfiguration
+import com.phenixrts.suite.phenixcore.repositories.models.PhenixEvent
 import com.phenixrts.suite.phenixcore.repositories.models.PhenixPublishConfiguration
 import com.phenixrts.suite.phenixdebugmenu.DebugMenu
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import timber.log.Timber
 
 class ChannelViewModel(private val phenixCore: PhenixCore) : ViewModel() {
 
+    private val _onEvent = MutableSharedFlow<PhenixEvent>(replay = 1)
+
     val onError = phenixCore.onError
-    val onEvent = phenixCore.onEvent
+    val onEvent = _onEvent.asSharedFlow()
+
+    init {
+        launch {
+            phenixCore.onEvent.collect { event ->
+                _onEvent.tryEmit(event)
+            }
+        }
+    }
 
     fun showPublisherPreview(surfaceView: SurfaceView) {
         Timber.d("Showing preview")

@@ -4,8 +4,6 @@
 
 package com.phenixrts.suite.phenixcore.repositories.room
 
-import android.os.Handler
-import android.os.Looper
 import android.view.SurfaceView
 import android.widget.ImageView
 import com.phenixrts.chat.RoomChatService
@@ -13,12 +11,7 @@ import com.phenixrts.chat.RoomChatServiceFactory
 import com.phenixrts.common.Disposable
 import com.phenixrts.common.RequestStatus
 import com.phenixrts.express.*
-import com.phenixrts.media.video.android.AndroidVideoFrame
-import com.phenixrts.pcast.FacingMode
-import com.phenixrts.pcast.Renderer
 import com.phenixrts.pcast.UserMediaStream
-import com.phenixrts.pcast.android.AndroidReadVideoFrameCallback
-import com.phenixrts.pcast.android.AndroidVideoRenderSurface
 import com.phenixrts.room.*
 import com.phenixrts.suite.phenixcore.BuildConfig
 import com.phenixrts.suite.phenixcore.common.*
@@ -34,46 +27,14 @@ import java.util.*
 
 internal class PhenixRoomRepository(
     private val roomExpress: RoomExpress,
-    private val userMediaStream: UserMediaStream,
     private val configuration: PhenixConfiguration
 ) {
-
-    private val videoRenderSurface by lazy { AndroidVideoRenderSurface() }
-    private var selfVideoRenderer: Renderer? = null
-    private var selfPreviewImageView: ImageView? = null
-    private var selfPreviewConfiguration: PhenixFrameReadyConfiguration? = null
-    private var isFirstFrameDrawn = false
-
-    private val frameCallback = Renderer.FrameReadyForProcessingCallback { frameNotification ->
-        frameNotification?.read(object : AndroidReadVideoFrameCallback() {
-            override fun onVideoFrameEvent(videoFrame: AndroidVideoFrame?) {
-                videoFrame?.bitmap?.prepareBitmap(selfPreviewConfiguration)?.let { bitmap ->
-                    selfPreviewImageView?.drawFrameBitmap(bitmap, isFirstFrameDrawn) {
-                        isFirstFrameDrawn = true
-                    }
-                }
-            }
-        })
-    }
 
     private val rawMembers = mutableListOf<PhenixCoreMember>()
     private val rawMessages = mutableListOf<PhenixMessage>()
     private val rawRooms = mutableListOf<PhenixRoom>()
     private val chatServices = mutableListOf<Pair<RoomChatService, String>>()
     private var roomConfiguration: PhenixRoomConfiguration? = null
-
-    private val microphoneFailureHandler = Handler(Looper.getMainLooper())
-    private val cameraFailureHandler = Handler(Looper.getMainLooper())
-    private val microphoneFailureRunnable = Runnable {
-        Timber.d("Audio recording has stopped")
-        selfCoreMember?.isAudioEnabled = false
-        _members.tryEmit(rawMembers.asPhenixMembers())
-    }
-    private val videoFailureRunnable = Runnable {
-        Timber.d("Video recording is stopped")
-        selfCoreMember?.isVideoEnabled = false
-        _members.tryEmit(rawMembers.asPhenixMembers())
-    }
 
     private val _onError = ConsumableSharedFlow<PhenixError>()
     private val _onEvent = ConsumableSharedFlow<PhenixEvent>()
@@ -84,7 +45,6 @@ internal class PhenixRoomRepository(
 
     private val disposables: MutableList<Disposable?> = mutableListOf()
     private val joinedDate = Date()
-    private var currentFacingMode = FacingMode.USER
 
     private var selfCoreMember: PhenixCoreMember? = null
     private var publisher: ExpressPublisher? = null
@@ -123,7 +83,7 @@ internal class PhenixRoomRepository(
         }
     }
 
-    fun publishToRoom(roomConfiguration: PhenixRoomConfiguration) {
+    fun publishToRoom(roomConfiguration: PhenixRoomConfiguration, userMediaStream: UserMediaStream) {
         Timber.d("Publishing to room: $roomConfiguration")
         _onEvent.tryEmit(PhenixEvent.PHENIX_ROOM_PUBLISHING.apply { data = roomConfiguration })
         val roomOptions = getRoomOptions(roomConfiguration)
@@ -161,20 +121,6 @@ internal class PhenixRoomRepository(
         }
     }
 
-    fun flipCamera() {
-        val facingMode = if (currentFacingMode == FacingMode.USER) FacingMode.ENVIRONMENT else FacingMode.USER
-        userMediaStream.applyOptions(
-            getUserMediaOptions(PhenixPublishConfiguration(cameraFacingMode = facingMode))
-        )?.let { status ->
-            if (status == RequestStatus.OK) {
-                currentFacingMode = facingMode
-                _onEvent.tryEmit(PhenixEvent.CAMERA_FLIPPED)
-            } else {
-                _onError.tryEmit(PhenixError.CAMERA_FLIP_FAILED)
-            }
-        }
-    }
-
     fun setVideoEnabled(memberId: String, enabled: Boolean) {
         Timber.d("Switching video streams: $enabled for: $memberId")
         rawMembers.find { it.memberId == memberId }?.run {
@@ -198,18 +144,6 @@ internal class PhenixRoomRepository(
             } else {
                 publisher?.disableVideo()
             }
-        }
-        if (enabled) {
-            if (selfVideoRenderer != null) return
-            selfVideoRenderer = userMediaStream.mediaStream?.createRenderer(rendererOptions)
-            val status = selfVideoRenderer?.start(videoRenderSurface)
-            selfVideoRenderer?.start()
-            Timber.d("Self video started: $status")
-        } else {
-            if (selfVideoRenderer == null) return
-            selfVideoRenderer?.stop()
-            selfVideoRenderer = null
-            Timber.d("Self video ended")
         }
     }
 
@@ -290,30 +224,12 @@ internal class PhenixRoomRepository(
 
     fun renderOnSurface(memberId: String, surfaceView: SurfaceView?) {
         Timber.d("Render on surface called")
-        videoRenderSurface.setSurfaceHolder(surfaceView?.holder)
         rawMembers.find { it.memberId == memberId }?.renderOnSurface(surfaceView)
     }
 
     fun renderOnImage(memberId: String, imageView: ImageView?, configuration: PhenixFrameReadyConfiguration?) {
         Timber.d("Render on image called")
         rawMembers.find { it.memberId == memberId }?.renderOnImage(imageView, configuration)
-    }
-
-    fun previewOnSurface(surfaceView: SurfaceView?) {
-        Timber.d("Preview on surface called")
-        videoRenderSurface.setSurfaceHolder(surfaceView?.holder)
-    }
-
-    fun previewOnImage(imageView: ImageView?, configuration: PhenixFrameReadyConfiguration?) {
-        Timber.d("Preview on image called")
-        selfPreviewImageView = imageView
-        selfPreviewConfiguration = configuration
-        userMediaStream.mediaStream?.videoTracks?.lastOrNull()?.let { videoTrack ->
-            val callback = if (selfPreviewImageView == null) null else frameCallback
-            if (callback == null) isFirstFrameDrawn = false
-            selfVideoRenderer?.setFrameReadyCallback(videoTrack, null)
-            selfVideoRenderer?.setFrameReadyCallback(videoTrack, callback)
-        }
     }
 
     fun subscribeRoomMembers() {
@@ -378,7 +294,6 @@ internal class PhenixRoomRepository(
         observeChatServices()
         observeMemberCount()
         observeRoomMembers()
-        observeMediaState()
         roomService?.observableActiveRoom?.value?.let { room ->
             if (rawRooms.none { it.id == room.roomId }) {
                 rawRooms.add(PhenixRoom(id = room.roomId, alias = room.observableAlias.value))
@@ -395,23 +310,6 @@ internal class PhenixRoomRepository(
                 _onError.tryEmit(PhenixError.ROOM_GONE.apply { data = roomConfiguration })
             }
         }.run { disposables.add(this) }
-    }
-
-    private fun observeMediaState() {
-        userMediaStream.run {
-            mediaStream.videoTracks.firstOrNull()?.let { videoTrack ->
-                setFrameReadyCallback(videoTrack) {
-                    cameraFailureHandler.removeCallbacks(videoFailureRunnable)
-                    cameraFailureHandler.postDelayed(videoFailureRunnable, FAILURE_TIMEOUT)
-                }
-            }
-            mediaStream.audioTracks.firstOrNull()?.let { audioTrack ->
-                setFrameReadyCallback(audioTrack) {
-                    microphoneFailureHandler.removeCallbacks(microphoneFailureRunnable)
-                    microphoneFailureHandler.postDelayed(microphoneFailureRunnable, FAILURE_TIMEOUT)
-                }
-            }
-        }
     }
 
     private fun observeChatServices() {
@@ -466,9 +364,6 @@ internal class PhenixRoomRepository(
     }
 
     fun release() {
-        selfVideoRenderer = null
-        selfPreviewImageView = null
-        selfPreviewConfiguration = null
         roomConfiguration = null
 
         rawMembers.forEach { it.dispose() }

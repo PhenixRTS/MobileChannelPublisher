@@ -32,8 +32,8 @@ fun AppCompatActivity.showErrorDialog(error: String) {
         .show()
 }
 
-fun View.showSnackBar(message: String) = launchMain {
-    Snackbar.make(this@showSnackBar, message, Snackbar.LENGTH_INDEFINITE).show()
+fun View.showSnackBar(message: String, duration: Int = Snackbar.LENGTH_INDEFINITE) = launchMain {
+    Snackbar.make(this@showSnackBar, message, duration).show()
 }
 
 fun Spinner.onSelectionChanged(callback: (Int) -> Unit) {

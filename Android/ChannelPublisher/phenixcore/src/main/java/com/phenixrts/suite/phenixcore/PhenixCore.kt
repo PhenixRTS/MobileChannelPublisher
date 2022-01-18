@@ -292,12 +292,15 @@ class PhenixCore(application: Application) {
      * If the publishing to room fails then the [onError] will be notified
      * with [PhenixError.PUBLISH_ROOM_FAILED].
      */
-    fun publishToRoom(configuration: PhenixRoomConfiguration) {
+    fun publishToRoom(
+        configuration: PhenixRoomConfiguration,
+        publishConfiguration: PhenixPublishConfiguration = PhenixPublishConfiguration()
+    ) {
         if (!repository.isPhenixInitialized) {
             _onError.tryEmit(PhenixError.NOT_INITIALIZED)
             return
         }
-        repository.publishToRoom(configuration)
+        repository.publishToRoom(configuration, publishConfiguration)
     }
 
     /**

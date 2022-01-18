@@ -10,7 +10,6 @@ import android.widget.ImageView
 import com.phenixrts.common.RequestStatus
 import com.phenixrts.environment.android.AndroidContext
 import com.phenixrts.express.*
-import com.phenixrts.pcast.UserMediaStream
 import com.phenixrts.room.MemberRole
 import com.phenixrts.room.MemberState
 import com.phenixrts.suite.phenixcore.BuildConfig
@@ -19,11 +18,10 @@ import com.phenixrts.suite.phenixcore.common.FileWriterDebugTree
 import com.phenixrts.suite.phenixcore.common.launchIO
 import com.phenixrts.suite.phenixcore.repositories.channel.PhenixChannelRepository
 import com.phenixrts.suite.phenixcore.repositories.core.common.PHENIX_LOG_LEVEL
-import com.phenixrts.suite.phenixcore.repositories.core.common.getUserMedia
-import com.phenixrts.suite.phenixcore.repositories.core.common.getUserMediaOptions
 import com.phenixrts.suite.phenixcore.repositories.core.models.PhenixCoreState
 import com.phenixrts.suite.phenixcore.repositories.models.*
 import com.phenixrts.suite.phenixcore.repositories.room.PhenixRoomRepository
+import com.phenixrts.suite.phenixcore.repositories.usermedia.UserMediaRepository
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
@@ -36,7 +34,7 @@ internal class PhenixCoreRepository(
     private var roomExpress: RoomExpress? = null
     private var channelRepository: PhenixChannelRepository? = null
     private var roomRepository: PhenixRoomRepository? = null
-    private val userMediaStreamRepository: UserMediaStreamRepository = UserMediaStreamRepository()
+    private var userMediaRepository: UserMediaRepository? = null
 
     private var _phenixState = PhenixCoreState.NOT_INITIALIZED
     private val _onError = ConsumableSharedFlow<PhenixError>()
@@ -96,25 +94,35 @@ internal class PhenixCoreRepository(
         ChannelExpressFactory.createChannelExpress(channelExpressOptions)?.let { express ->
             express.roomExpress?.pCastExpress?.waitForOnline {
                 Timber.d("Phenix Core initialized")
-                express.roomExpress.pCastExpress.getUserMedia { userMedia ->
-                    userMediaStreamRepository.setUserMediaStream(userMedia)
-                    roomExpress = express.roomExpress
-                    channelRepository = PhenixChannelRepository(express, userMediaStreamRepository, configuration)
-                    roomRepository = PhenixRoomRepository(express.roomExpress, userMedia, configuration)
-                    _phenixState = PhenixCoreState.INITIALIZED
-                    _onEvent.tryEmit(PhenixEvent.PHENIX_CORE_INITIALIZED)
+                roomExpress = express.roomExpress
+                channelRepository = PhenixChannelRepository(express, configuration)
+                roomRepository = PhenixRoomRepository(express.roomExpress, configuration)
+                userMediaRepository = UserMediaRepository(
+                    express.pCastExpress,
+                    configuration,
+                    onMicrophoneFailure = {
+                        roomRepository?.setSelfAudioEnabled(false)
+                    },
+                    onCameraFailure = {
+                        roomRepository?.setSelfVideoEnabled(false)
+                    }
+                )
+                _phenixState = PhenixCoreState.INITIALIZED
+                _onEvent.tryEmit(PhenixEvent.PHENIX_CORE_INITIALIZED)
 
-                    launchIO { channelRepository?.onError?.collect { _onError.tryEmit(it) } }
-                    launchIO { channelRepository?.onEvent?.collect { _onEvent.tryEmit(it) } }
-                    launchIO { channelRepository?.channels?.collect { _channels.tryEmit(it) } }
+                launchIO { userMediaRepository?.onError?.collect { _onError.tryEmit(it) } }
+                launchIO { userMediaRepository?.onEvent?.collect { _onEvent.tryEmit(it) } }
 
-                    launchIO { roomRepository?.onError?.collect { _onError.tryEmit(it) } }
-                    launchIO { roomRepository?.onEvent?.collect { _onEvent.tryEmit(it) } }
-                    launchIO { roomRepository?.members?.collect { _members.tryEmit(it) } }
-                    launchIO { roomRepository?.messages?.collect { _messages.tryEmit(it) } }
-                    launchIO { roomRepository?.rooms?.collect { _rooms.tryEmit(it) } }
-                    launchIO { roomRepository?.memberCount?.collect { _memberCount.tryEmit(it) } }
-                }
+                launchIO { channelRepository?.onError?.collect { _onError.tryEmit(it) } }
+                launchIO { channelRepository?.onEvent?.collect { _onEvent.tryEmit(it) } }
+                launchIO { channelRepository?.channels?.collect { _channels.tryEmit(it) } }
+
+                launchIO { roomRepository?.onError?.collect { _onError.tryEmit(it) } }
+                launchIO { roomRepository?.onEvent?.collect { _onEvent.tryEmit(it) } }
+                launchIO { roomRepository?.members?.collect { _members.tryEmit(it) } }
+                launchIO { roomRepository?.messages?.collect { _messages.tryEmit(it) } }
+                launchIO { roomRepository?.rooms?.collect { _rooms.tryEmit(it) } }
+                launchIO { roomRepository?.memberCount?.collect { _memberCount.tryEmit(it) } }
             }
         } ?: run {
             Timber.e("Failed to initialize Phenix Core")
@@ -130,26 +138,11 @@ internal class PhenixCoreRepository(
         channelRepository?.joinChannel(configuration)
 
     fun publishToChannel(configuration: PhenixChannelConfiguration, publishConfiguration: PhenixPublishConfiguration) {
-        // TODO: Applying new options can return BAD_REQUEST and after that user media stream is re-required;
-        //  The re-required user media stream is showing the preview, but it's not being streamed;
-        //  Channel viewers see only black-screen until the channel times out.
-        userMediaStreamRepository.applyOptions(getUserMediaOptions(publishConfiguration))?.let { optionStatus ->
-            Timber.d("Updated user media stream configuration: $optionStatus, $configuration")
-            if (optionStatus != RequestStatus.OK) {
-                userMediaStreamRepository.dispose()
-                // TODO: The new user media stream is not working when used for publishing although the local preview works
-                Timber.d("Failed to update user media stream settings, requesting new user media object")
-                roomExpress?.pCastExpress?.getUserMedia(getUserMediaOptions(publishConfiguration)) { status, userMedia ->
-                    if (status == RequestStatus.OK) {
-                        userMediaStreamRepository.setUserMediaStream(userMedia)
-                        Timber.d("Collected new media stream from pCast: $userMedia")
-                        channelRepository?.publishToChannel(configuration)
-                    } else {
-                        _onError.tryEmit(PhenixError.PUBLISH_CHANNEL_FAILED.apply { data = configuration })
-                    }
-                }
+        userMediaRepository?.updateUserMedia(publishConfiguration) { status, userMedia ->
+            if (status == RequestStatus.OK) {
+                channelRepository?.publishToChannel(configuration, userMedia)
             } else {
-                channelRepository?.publishToChannel(configuration)
+                _onError.tryEmit(PhenixError.PUBLISH_CHANNEL_FAILED.apply { data = configuration })
             }
         }
     }
@@ -159,9 +152,10 @@ internal class PhenixCoreRepository(
     fun selectChannel(alias: String, isSelected: Boolean) =
         channelRepository?.selectChannel(alias, isSelected)
 
-    fun flipCamera() = roomRepository?.flipCamera()
+    fun flipCamera() = userMediaRepository?.flipCamera()
 
     fun renderOnSurface(alias: String, surfaceView: SurfaceView?) {
+        userMediaRepository?.renderOnSurface(surfaceView)
         channelRepository?.renderOnSurface(alias, surfaceView)
         roomRepository?.renderOnSurface(alias, surfaceView)
     }
@@ -172,10 +166,10 @@ internal class PhenixCoreRepository(
     }
 
     fun previewOnSurface(surfaceView: SurfaceView?) =
-        roomRepository?.previewOnSurface(surfaceView)
+        userMediaRepository?.renderOnSurface(surfaceView)
 
     fun previewOnImage(imageView: ImageView?, configuration: PhenixFrameReadyConfiguration?) =
-        roomRepository?.previewOnImage(imageView, configuration)
+        userMediaRepository?.renderOnImage(imageView, configuration)
 
     fun createTimeShift(alias: String, timestamp: Long) =
         channelRepository?.createTimeShift(alias, timestamp)
@@ -215,8 +209,10 @@ internal class PhenixCoreRepository(
     fun setVideoEnabled(alias: String, enabled: Boolean) =
         roomRepository?.setVideoEnabled(alias, enabled)
 
-    fun setSelfVideoEnabled(enabled: Boolean) =
+    fun setSelfVideoEnabled(enabled: Boolean) {
         roomRepository?.setSelfVideoEnabled(enabled)
+        userMediaRepository?.setSelfVideoEnabled(enabled)
+    }
 
     fun joinRoom(configuration: PhenixRoomConfiguration) =
         roomRepository?.joinRoom(configuration)
@@ -240,8 +236,15 @@ internal class PhenixCoreRepository(
     fun selectMember(memberId: String, isSelected: Boolean) =
         roomRepository?.selectMember(memberId, isSelected)
 
-    fun publishToRoom(configuration: PhenixRoomConfiguration) =
-        roomRepository?.publishToRoom(configuration)
+    fun publishToRoom(configuration: PhenixRoomConfiguration, publishConfiguration: PhenixPublishConfiguration) {
+        userMediaRepository?.updateUserMedia(publishConfiguration) { status, userMedia ->
+            if (status == RequestStatus.OK) {
+                roomRepository?.publishToRoom(configuration, userMedia)
+            } else {
+                _onError.tryEmit(PhenixError.PUBLISH_ROOM_FAILED.apply { data = configuration })
+            }
+        }
+    }
 
     fun subscribeToRoom() = roomRepository?.subscribeRoomMembers()
 
@@ -255,12 +258,13 @@ internal class PhenixCoreRepository(
         roomExpress?.dispose()
         channelRepository?.release()
         roomRepository?.release()
+        userMediaRepository?.release()
 
         configuration = PhenixConfiguration()
-        userMediaStreamRepository.dispose()
         roomExpress = null
         channelRepository = null
         roomRepository = null
+        userMediaRepository = null
         _phenixState = PhenixCoreState.NOT_INITIALIZED
     }
 

@@ -7,6 +7,7 @@ package com.phenixrts.suite.channelpublisher.ui
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
 import com.phenixrts.suite.channelpublisher.BuildConfig
 import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
 import com.phenixrts.suite.channelpublisher.R
@@ -41,21 +42,13 @@ class MainActivity : AppCompatActivity() {
         launchUI {
             viewModel.onError.collect { error ->
                 Timber.d("Channel Publisher failed: $error")
-                binding.root.showSnackBar(error.message)
+                hideLoading()
+                binding.root.showSnackBar(error.message, Snackbar.LENGTH_LONG)
             }
         }
         launchUI {
             viewModel.onEvent.collect { event ->
-                Timber.d("Channel Publisher event: $event")
-                when (event) {
-                    PhenixEvent.PHENIX_CHANNEL_PUBLISHING -> showLoading()
-                    PhenixEvent.PHENIX_CHANNEL_PUBLISHED -> {
-                        hideLoading()
-                        hideConfigurationOverlay()
-                    }
-                    PhenixEvent.PHENIX_CHANNEL_PUBLISH_ENDED -> showConfigurationOverlay()
-                    else -> { /* Ignored */ }
-                }
+                updateState(event)
             }
         }
 
@@ -76,7 +69,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.observeDebugMenu(
             binding.debugMenu,
             onError = {
-                binding.root.showSnackBar(getString(R.string.err_share_logs_failed))
+                binding.root.showSnackBar(getString(R.string.err_share_logs_failed), Snackbar.LENGTH_LONG)
             },
             onShow = {
                 binding.debugMenu.showAppChooser(this@MainActivity)
@@ -91,6 +84,9 @@ class MainActivity : AppCompatActivity() {
         ))
 
         viewModel.showPublisherPreview(binding.channelSurface)
+        viewModel.onEvent.replayCache.lastOrNull()?.let { event ->
+            updateState(event)
+        }
     }
 
     override fun onDestroy() {
@@ -99,7 +95,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (binding.debugMenu.isClosed()){
+        if (binding.debugMenu.isClosed()) {
             super.onBackPressed()
         }
     }
@@ -141,6 +137,19 @@ class MainActivity : AppCompatActivity() {
         binding.configuration.spinnerMicrophone.onSelectionChanged { index ->
             Timber.d("Camera microphone state selected: $index")
             selectedMicrophoneOption = index
+        }
+    }
+
+    private fun updateState(event: PhenixEvent) {
+        Timber.d("Channel Publisher event: $event")
+        when (event) {
+            PhenixEvent.PHENIX_CHANNEL_PUBLISHING -> showLoading()
+            PhenixEvent.PHENIX_CHANNEL_PUBLISHED -> {
+                hideLoading()
+                hideConfigurationOverlay()
+            }
+            PhenixEvent.PHENIX_CHANNEL_PUBLISH_ENDED -> showConfigurationOverlay()
+            else -> { /* Ignored */ }
         }
     }
 

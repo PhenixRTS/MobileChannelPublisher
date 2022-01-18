@@ -174,14 +174,10 @@ internal fun PCastExpress.getUserMedia(onMediaCollected: (userMedia: UserMediaSt
 }
 
 internal fun getUserMediaOptions(configuration: PhenixPublishConfiguration): UserMediaOptions = UserMediaOptions().apply {
-    // TODO: Changing facing mode some time crashes the app with:
-    //  JNI DETECTED ERROR IN APPLICATION: JNI GetObjectRefType called with pending exception java.lang.RuntimeException: Fail to connect to camera service
     if (configuration.cameraFacingMode != FacingMode.UNDEFINED) {
         videoOptions.capabilityConstraints[DeviceCapability.FACING_MODE] = listOf(DeviceConstraint(configuration.cameraFacingMode))
     }
-    // TODO: If Height is not set to the same value as the default one (Set on app start) - then BAD_REQUEST is returned when applying options
     videoOptions.capabilityConstraints[DeviceCapability.HEIGHT] = listOf(DeviceConstraint(360.0))
-    // TODO: Changing FPS - causes BAD_REQUEST which then causes the stream to be re-created and unusable for publishing;
     videoOptions.capabilityConstraints[DeviceCapability.FRAME_RATE] = listOf(DeviceConstraint(configuration.cameraFps))
     audioOptions.capabilityConstraints[DeviceCapability.AUDIO_ECHO_CANCELATION_MODE] = listOf(DeviceConstraint(configuration.echoCancellationMode))
     audioOptions.enabled = configuration.microphoneEnabled
