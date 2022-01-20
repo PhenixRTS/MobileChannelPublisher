@@ -32,27 +32,28 @@ internal class PhenixRoomRepository(
 
     private val rawMembers = mutableListOf<PhenixCoreMember>()
     private val rawMessages = mutableListOf<PhenixMessage>()
-    private val rawRooms = mutableListOf<PhenixRoom>()
     private val chatServices = mutableListOf<Pair<RoomChatService, String>>()
+    private var rawRoom: PhenixRoom? = null
     private var roomConfiguration: PhenixRoomConfiguration? = null
 
     private val _onError = ConsumableSharedFlow<PhenixError>()
     private val _onEvent = ConsumableSharedFlow<PhenixEvent>()
     private val _members = ConsumableSharedFlow<List<PhenixMember>>(canReplay = true)
     private val _messages = ConsumableSharedFlow<List<PhenixMessage>>(canReplay = true)
-    private val _rooms = ConsumableSharedFlow<List<PhenixRoom>>(canReplay = true)
+    private val _room = ConsumableSharedFlow<PhenixRoom?>(canReplay = true)
     private var _memberCount = ConsumableSharedFlow<Long>(canReplay = true)
 
     private val disposables: MutableList<Disposable?> = mutableListOf()
     private val joinedDate = Date()
 
-    private var selfCoreMember: PhenixCoreMember? = null
     private var publisher: ExpressPublisher? = null
     private var roomService: RoomService? = null
 
+    private val selfCoreMember get() = rawMembers.find { it.isSelf }
+
     val members = _members.asSharedFlow()
     val messages = _messages.asSharedFlow()
-    val rooms = _rooms.asSharedFlow()
+    val room = _room.asSharedFlow()
     val onError = _onError.asSharedFlow()
     val onEvent = _onEvent.asSharedFlow()
     val memberCount = _memberCount.asSharedFlow()
@@ -114,72 +115,35 @@ internal class PhenixRoomRepository(
         stopPublishingToRoom()
         roomService?.leaveRoom { _, status ->
             Timber.d("Room left with status: $status")
-            dispose()
-            rawRooms.clear()
-            _rooms.tryEmit(rawRooms.map { it.copy() })
+            release()
+            _room.tryEmit(null)
             _onEvent.tryEmit(PhenixEvent.PHENIX_ROOM_LEFT.apply { data = roomConfiguration })
         }
     }
 
     fun setVideoEnabled(memberId: String, enabled: Boolean) {
-        Timber.d("Switching video streams: $enabled for: $memberId")
-        rawMembers.find { it.memberId == memberId }?.run {
-            isVideoEnabled = enabled
-            if (isSelf) {
-                if (enabled) {
-                    publisher?.enableVideo()
-                } else {
-                    publisher?.disableVideo()
-                }
-            }
-        }
+        findMember(memberId)?.enableVideo(enabled)
     }
 
     fun setSelfVideoEnabled(enabled: Boolean) {
-        rawMembers.find { it.isSelf }?.run {
-            Timber.d("Switching self preview and publisher video state: $enabled")
-            isVideoEnabled = enabled
-            if (enabled) {
-                publisher?.enableVideo()
-            } else {
-                publisher?.disableVideo()
-            }
-        }
+        selfCoreMember?.enableVideo(enabled)
     }
 
     fun setAudioEnabled(memberId: String, enabled: Boolean) {
-        Timber.d("Switching audio streams: $enabled for: $memberId in $rawMembers")
-        rawMembers.find { it.memberId == memberId }?.run {
-            isAudioEnabled = enabled
-            if (isSelf) {
-                if (enabled) {
-                    publisher?.enableAudio()
-                } else {
-                    publisher?.disableAudio()
-                }
-            }
-        }
+        findMember(memberId)?.enableAudio(enabled)
     }
 
     fun setSelfAudioEnabled(enabled: Boolean) {
-        rawMembers.find { it.isSelf }?.run {
-            Timber.d("Switching self preview and publisher audio state: $enabled")
-            isAudioEnabled = enabled
-            if (enabled) {
-                publisher?.enableAudio()
-            } else {
-                publisher?.disableAudio()
-            }
-        }
+        selfCoreMember?.enableAudio(enabled)
     }
 
     fun setAudioLevel(memberId: String, level: Float) {
         Timber.d("Changing member audio level: $memberId, $level")
-        rawMembers.find { it.memberId == memberId }?.audioLevel = if (level < 0f) 0f else if (level > 1f) 1f else level
+        findMember(memberId)?.audioLevel = if (level < 0f) 0f else if (level > 1f) 1f else level
     }
 
     fun updateMember(memberId: String, role: MemberRole?, state: MemberState?, name: String?) {
-        rawMembers.find { it.memberId == memberId }?.let { member ->
+        findMember(memberId)?.let { member ->
             Timber.d("Updating member: $member with: ${role ?: member.memberRole}, ${state ?: member.memberState}, ${name ?: member.memberName}")
             member.updateMember(
                 role ?: member.memberRole,
@@ -218,18 +182,18 @@ internal class PhenixRoomRepository(
     }
 
     fun selectMember(memberId: String, isSelected: Boolean) {
-        Timber.d("Selecting member: ${rawMembers.find { it.member.sessionId == memberId }}, $isSelected")
-        rawMembers.find { it.member.sessionId == memberId }?.isSelected = isSelected
+        Timber.d("Selecting member: $memberId, $isSelected")
+        findMember(memberId)?.isSelected = isSelected
     }
 
     fun renderOnSurface(memberId: String, surfaceView: SurfaceView?) {
         Timber.d("Render on surface called")
-        rawMembers.find { it.memberId == memberId }?.renderOnSurface(surfaceView)
+        findMember(memberId)?.renderOnSurface(surfaceView)
     }
 
     fun renderOnImage(memberId: String, imageView: ImageView?, configuration: PhenixFrameReadyConfiguration?) {
         Timber.d("Render on image called")
-        rawMembers.find { it.memberId == memberId }?.renderOnImage(imageView, configuration)
+        findMember(memberId)?.renderOnImage(imageView, configuration)
     }
 
     fun subscribeRoomMembers() {
@@ -244,7 +208,10 @@ internal class PhenixRoomRepository(
         }
     }
 
-    private fun dispose() {
+    fun release() {
+        roomConfiguration = null
+        rawRoom = null
+
         rawMessages.clear()
         rawMembers.forEach { it.dispose() }
         rawMembers.clear()
@@ -260,10 +227,12 @@ internal class PhenixRoomRepository(
         disposables.clear()
     }
 
+    private fun findMember(memberId: String) = rawMembers.find { it.memberId == memberId }
+
     private fun onRoomJoined(configuration: PhenixRoomConfiguration, service: RoomService?, event: PhenixEvent) {
         roomConfiguration = configuration
-        selfCoreMember = PhenixCoreMember(roomService!!.self, true, roomExpress, configuration)
-        rawMembers.add(selfCoreMember!!)
+        val selfCoreMember = PhenixCoreMember(roomService!!.self, true, roomExpress, configuration)
+        rawMembers.add(selfCoreMember)
         chatServices.forEach { it.first.dispose() }
         chatServices.clear()
         if (configuration.messageConfigs.isNotEmpty()) {
@@ -284,7 +253,7 @@ internal class PhenixRoomRepository(
         }
         if (!configuration.joinSilently) {
             updateMember(
-                selfCoreMember!!.memberId,
+                selfCoreMember.memberId,
                 configuration.memberRole,
                 MemberState.ACTIVE,
                 configuration.memberName
@@ -295,10 +264,10 @@ internal class PhenixRoomRepository(
         observeMemberCount()
         observeRoomMembers()
         roomService?.observableActiveRoom?.value?.let { room ->
-            if (rawRooms.none { it.id == room.roomId }) {
-                rawRooms.add(PhenixRoom(id = room.roomId, alias = room.observableAlias.value))
+            if (rawRoom?.id != room.roomId) {
+                rawRoom = PhenixRoom(id = room.roomId, alias = room.observableAlias.value)
             }
-            _rooms.tryEmit(rawRooms.map { it.copy() })
+            _room.tryEmit(rawRoom?.copy())
             _onEvent.tryEmit(event.apply { data = configuration })
         }
     }
@@ -332,11 +301,10 @@ internal class PhenixRoomRepository(
     }
 
     private fun disposeGoneMembers(members: List<PhenixCoreMember>) {
-        rawMembers.forEach { member ->
-            members.find { it.isThisMember(member.member.sessionId) }?.takeIf { it.isDisposable }?.let {
-                Timber.d("Disposing gone member: $it")
-                it.dispose()
-            }
+        val rawMembersMap = rawMembers.map { Pair(it.memberId, it) }.toMap()
+        members.filter { member -> rawMembersMap[member.memberId]?.isDisposable == true }.forEach { member ->
+            Timber.d("Disposing gone member: $member")
+            member.dispose()
         }
     }
 
@@ -363,14 +331,27 @@ internal class PhenixRoomRepository(
         }.run { disposables.add(this) }
     }
 
-    fun release() {
-        roomConfiguration = null
+    private fun PhenixCoreMember.enableAudio(enabled: Boolean) {
+        Timber.d("Switching audio to: $enabled for: ${toString()}")
+        isAudioEnabled = enabled
+        if (isSelf) {
+            if (enabled) {
+                publisher?.enableAudio()
+            } else {
+                publisher?.disableAudio()
+            }
+        }
+    }
 
-        rawMembers.forEach { it.dispose() }
-        chatServices.forEach { it.first.dispose() }
-        rawMembers.clear()
-        rawMessages.clear()
-        rawRooms.clear()
-        chatServices.clear()
+    private fun PhenixCoreMember.enableVideo(enabled: Boolean) {
+        Timber.d("Switching video to: $enabled for: ${toString()}")
+        isVideoEnabled = enabled
+        if (isSelf) {
+            if (enabled) {
+                publisher?.enableVideo()
+            } else {
+                publisher?.disableVideo()
+            }
+        }
     }
 }

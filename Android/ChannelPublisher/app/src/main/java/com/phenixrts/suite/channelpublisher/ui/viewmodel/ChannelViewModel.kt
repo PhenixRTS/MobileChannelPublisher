@@ -13,6 +13,7 @@ import com.phenixrts.suite.phenixcore.repositories.models.PhenixChannelConfigura
 import com.phenixrts.suite.phenixcore.repositories.models.PhenixEvent
 import com.phenixrts.suite.phenixcore.repositories.models.PhenixPublishConfiguration
 import com.phenixrts.suite.phenixdebugmenu.DebugMenu
+import com.phenixrts.suite.phenixdebugmenu.models.DebugEvent
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import timber.log.Timber
@@ -62,12 +63,12 @@ class ChannelViewModel(private val phenixCore: PhenixCore) : ViewModel() {
 
     fun stopPublishing() = phenixCore.stopPublishingToChannel()
 
-    fun observeDebugMenu(debugMenu: DebugMenu, onError: () -> Unit, onShow: () -> Unit) {
+    fun observeDebugMenu(debugMenu: DebugMenu, onError: (String) -> Unit, onEvent: (DebugEvent) -> Unit) {
         debugMenu.observeDebugMenu(
             phenixCore,
             "${BuildConfig.APPLICATION_ID}.provider",
             onError = onError,
-            onShow = onShow
+            onEvent = onEvent
         )
     }
 }

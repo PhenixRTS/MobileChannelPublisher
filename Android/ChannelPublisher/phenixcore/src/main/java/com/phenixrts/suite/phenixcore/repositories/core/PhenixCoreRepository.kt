@@ -41,9 +41,8 @@ internal class PhenixCoreRepository(
     private val _onEvent = ConsumableSharedFlow<PhenixEvent>()
     private val _channels = ConsumableSharedFlow<List<PhenixChannel>>(canReplay = true)
     private val _messages = ConsumableSharedFlow<List<PhenixMessage>>(canReplay = true)
-    private val _logMessages = ConsumableSharedFlow<String>()
     private val _members = ConsumableSharedFlow<List<PhenixMember>>(canReplay = true)
-    private val _rooms = ConsumableSharedFlow<List<PhenixRoom>>(canReplay = true)
+    private val _room = ConsumableSharedFlow<PhenixRoom?>(canReplay = true)
     private var _memberCount = ConsumableSharedFlow<Long>(canReplay = true)
 
     val onError = _onError.asSharedFlow()
@@ -51,8 +50,7 @@ internal class PhenixCoreRepository(
     val channels = _channels.asSharedFlow()
     val members = _members.asSharedFlow()
     val messages = _messages.asSharedFlow()
-    val logMessages = _logMessages.asSharedFlow()
-    val rooms = _rooms.asSharedFlow()
+    val room = _room.asSharedFlow()
     val memberCount = _memberCount.asSharedFlow()
 
     val isPhenixInitializing get() = _phenixState == PhenixCoreState.INITIALIZING
@@ -121,7 +119,7 @@ internal class PhenixCoreRepository(
                 launchIO { roomRepository?.onEvent?.collect { _onEvent.tryEmit(it) } }
                 launchIO { roomRepository?.members?.collect { _members.tryEmit(it) } }
                 launchIO { roomRepository?.messages?.collect { _messages.tryEmit(it) } }
-                launchIO { roomRepository?.rooms?.collect { _rooms.tryEmit(it) } }
+                launchIO { roomRepository?.room?.collect { _room.tryEmit(it) } }
                 launchIO { roomRepository?.memberCount?.collect { _memberCount.tryEmit(it) } }
             }
         } ?: run {
@@ -248,9 +246,10 @@ internal class PhenixCoreRepository(
 
     fun subscribeToRoom() = roomRepository?.subscribeRoomMembers()
 
-    fun collectLogs() {
+    fun collectLogs(onCollected: (String) -> Unit) {
         roomExpress?.pCastExpress?.pCast?.collectLogMessages { _, _, messages ->
-            _logMessages.tryEmit(messages)
+            Timber.d("SDK logs collected")
+            onCollected(messages)
         }
     }
 

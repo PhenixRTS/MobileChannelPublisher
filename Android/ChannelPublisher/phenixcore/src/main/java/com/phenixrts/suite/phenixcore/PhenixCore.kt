@@ -47,20 +47,20 @@ class PhenixCore(application: Application) {
     private val _onError = ConsumableSharedFlow<PhenixError>()
     private val _onEvent = ConsumableSharedFlow<PhenixEvent>()
     private val _channels = ConsumableSharedFlow<List<PhenixChannel>>(canReplay = true)
-    private val _rooms = ConsumableSharedFlow<List<PhenixRoom>>(canReplay = true)
+    private val _room = ConsumableSharedFlow<PhenixRoom?>(canReplay = true)
     private val _messages = ConsumableSharedFlow<List<PhenixMessage>>(canReplay = true)
     private val _logMessages = ConsumableSharedFlow<String>(canReplay = true)
     private val _members = ConsumableSharedFlow<List<PhenixMember>>(canReplay = true)
     private var _memberCount = ConsumableSharedFlow<Long>(canReplay = true)
 
     /**
-     * Holds the latest received [PhenixError].
+     * Emits the latest received [PhenixError].
      * This flow is updated every time any error happens inside the [PhenixCore].
      */
     val onError = _onError.asSharedFlow()
 
     /**
-     * Holds the latest received [PhenixEvent].
+     * Emits the latest received [PhenixEvent].
      * This flow is updated every time any significant event happens inside the [PhenixCore].
      */
     val onEvent = _onEvent.asSharedFlow()
@@ -74,12 +74,11 @@ class PhenixCore(application: Application) {
     val channels = _channels.asSharedFlow()
 
     /**
-     * Holds the list of all rooms and their states. This is a super-hot flow and
-     * is updated whenever something changes in any given room. Use this with a diff-util
-     * to filter out unwanted updates. Ideally bind this directly to your UI layer and let the
-     * values auto-update the views.
+     * Holds the currently connected room and its state or null. This is a super-hot flow and
+     * is updated whenever something changes in the connected room.
+     * Ideally bind this directly to your UI layer and let the values auto-update the views.
      */
-    val rooms = _rooms.asSharedFlow()
+    val rooms = _room.asSharedFlow()
 
     /**
      * Holds the list of all messages and their states. This is a super-hot flow and
@@ -88,11 +87,6 @@ class PhenixCore(application: Application) {
      * values auto-update the views.
      */
     val messages = _messages.asSharedFlow()
-
-    /**
-     * Holds the collected phenix logs
-     */
-    val logMessages = _logMessages.asSharedFlow()
 
     /**
      * Holds the list of all members and their states. This is a super-hot flow and
@@ -133,8 +127,7 @@ class PhenixCore(application: Application) {
         launchIO { repository.channels.collect { _channels.tryEmit(it) } }
         launchIO { repository.members.collect { _members.tryEmit(it) } }
         launchIO { repository.messages.collect { _messages.tryEmit(it) } }
-        launchIO { repository.logMessages.collect { _logMessages.tryEmit(it) } }
-        launchIO { repository.rooms.collect { _rooms.tryEmit(it)} }
+        launchIO { repository.room.collect { _room.tryEmit(it)} }
         launchIO { repository.memberCount.collect { _memberCount.tryEmit(it) } }
     }
 
@@ -188,18 +181,16 @@ class PhenixCore(application: Application) {
      * joining status for each of the channels.
      */
     fun joinAllChannels() {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            if (configuration?.channelAliases?.isNullOrEmpty() == true && configuration?.streamIDs?.isNullOrEmpty() == true) {
+                _onError.tryEmit(PhenixError.CHANNEL_LIST_EMPTY)
+                return@whenInitialized
+            }
+            repository.joinAllChannels(
+                configuration?.channelAliases ?: emptyList(),
+                configuration?.streamIDs ?: emptyList()
+            )
         }
-        if (configuration?.channelAliases?.isNullOrEmpty() == true && configuration?.streamIDs?.isNullOrEmpty() == true) {
-            _onError.tryEmit(PhenixError.CHANNEL_LIST_EMPTY)
-            return
-        }
-        repository.joinAllChannels(
-            configuration?.channelAliases ?: emptyList(),
-            configuration?.streamIDs ?: emptyList()
-        )
     }
 
     /**
@@ -213,11 +204,9 @@ class PhenixCore(application: Application) {
      * joining status of the channel.
      */
     fun joinChannel(config: PhenixChannelConfiguration) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.joinChannel(config)
         }
-        repository.joinChannel(config)
     }
 
     /**
@@ -231,11 +220,9 @@ class PhenixCore(application: Application) {
         configuration: PhenixChannelConfiguration,
         publishConfiguration: PhenixPublishConfiguration = PhenixPublishConfiguration()
     ) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.publishToChannel(configuration, publishConfiguration)
         }
-        repository.publishToChannel(configuration, publishConfiguration)
     }
 
     /**
@@ -248,11 +235,9 @@ class PhenixCore(application: Application) {
      * otherwise the [onError] will be notified with [PhenixError.JOIN_ROOM_FAILED].
      */
     fun joinRoom(configuration: PhenixRoomConfiguration) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.joinRoom(configuration)
         }
-        repository.joinRoom(configuration)
     }
 
     /**
@@ -265,11 +250,9 @@ class PhenixCore(application: Application) {
      * otherwise the [onError] will be notified with [PhenixError.CREATE_ROOM_FAILED].
      */
     fun createRoom(configuration: PhenixRoomConfiguration) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.createRoom(configuration)
         }
-        repository.createRoom(configuration)
     }
 
     /**
@@ -279,11 +262,9 @@ class PhenixCore(application: Application) {
      * otherwise the [onError] will be notified with [PhenixError.LEAVE_ROOM_FAILED].
      */
     fun leaveRoom() {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.leaveRoom()
         }
-        repository.leaveRoom()
     }
 
     /**
@@ -296,11 +277,9 @@ class PhenixCore(application: Application) {
         configuration: PhenixRoomConfiguration,
         publishConfiguration: PhenixPublishConfiguration = PhenixPublishConfiguration()
     ) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.publishToRoom(configuration, publishConfiguration)
         }
-        repository.publishToRoom(configuration, publishConfiguration)
     }
 
     /**
@@ -308,11 +287,9 @@ class PhenixCore(application: Application) {
      * When the value is changed, then the [channels] flow will be updated.
      */
     fun selectChannel(alias: String, isSelected: Boolean) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.selectChannel(alias, isSelected)
         }
-        repository.selectChannel(alias, isSelected)
     }
 
     /**
@@ -321,11 +298,9 @@ class PhenixCore(application: Application) {
      * If the request succeeds - [onEvent] will be notified with [PhenixEvent.CAMERA_FLIPPED].
      */
     fun flipCamera() {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.flipCamera()
         }
-        repository.flipCamera()
     }
 
     /**
@@ -333,11 +308,9 @@ class PhenixCore(application: Application) {
      * If the [surfaceView] is null - the video renderer is stopped, else - started.
      */
     fun renderOnSurface(alias: String, surfaceView: SurfaceView?) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.renderOnSurface(alias, surfaceView)
         }
-        repository.renderOnSurface(alias, surfaceView)
     }
 
     /**
@@ -347,11 +320,9 @@ class PhenixCore(application: Application) {
      * If the [imageView] is null - the callback is removed, else - set.
      */
     fun renderOnImage(alias: String, imageView: ImageView?, configuration: PhenixFrameReadyConfiguration? = null) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.renderOnImage(alias, imageView, configuration)
         }
-        repository.renderOnImage(alias, imageView, configuration)
     }
 
     /**
@@ -359,11 +330,9 @@ class PhenixCore(application: Application) {
      * If the [surfaceView] is null - the video renderer is stopped, else - started.
      */
     fun previewOnSurface(surfaceView: SurfaceView?) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.previewOnSurface(surfaceView)
         }
-        repository.previewOnSurface(surfaceView)
     }
 
     /**
@@ -373,11 +342,9 @@ class PhenixCore(application: Application) {
      * If the [imageView] is null - the callback is removed, else - set.
      */
     fun previewOnImage(imageView: ImageView?, configuration: PhenixFrameReadyConfiguration? = null) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.previewOnImage(imageView, configuration)
         }
-        repository.previewOnImage(imageView, configuration)
     }
 
     /**
@@ -385,22 +352,18 @@ class PhenixCore(application: Application) {
      * When the value is changed, then the [channels] or [members] flow will be updated.
      */
     fun setAudioEnabled(alias: String, enabled: Boolean) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.setAudioEnabled(alias, enabled)
         }
-        repository.setAudioEnabled(alias, enabled)
     }
 
     /**
      * Changes the self preview and publisher audio state.
      */
     fun setSelfAudioEnabled(enabled: Boolean) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.setSelfAudioEnabled(enabled)
         }
-        repository.setSelfAudioEnabled(enabled)
     }
 
     /**
@@ -408,22 +371,18 @@ class PhenixCore(application: Application) {
      * When the value is changed, then the [members] flow will be updated.
      */
     fun setVideoEnabled(alias: String, enabled: Boolean) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.setVideoEnabled(alias, enabled)
         }
-        repository.setVideoEnabled(alias, enabled)
     }
 
     /**
      * Changes the self preview and publisher video state.
      */
     fun setSelfVideoEnabled(enabled: Boolean) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.setSelfVideoEnabled(enabled)
         }
-        repository.setSelfVideoEnabled(enabled)
     }
 
     /**
@@ -435,11 +394,9 @@ class PhenixCore(application: Application) {
      * Use the [PhenixChannel.timeShiftHead] to check the current loop position.
      */
     fun createTimeShift(alias: String, timestamp: Long) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.createTimeShift(alias, timestamp)
         }
-        repository.createTimeShift(alias, timestamp)
     }
 
     /**
@@ -451,11 +408,9 @@ class PhenixCore(application: Application) {
      * Use the [PhenixChannel.timeShiftHead] to check the current loop position.
      */
     fun startTimeShift(alias: String, duration: Long) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.startTimeShift(alias, duration)
         }
-        repository.startTimeShift(alias, duration)
     }
 
     /**
@@ -467,11 +422,9 @@ class PhenixCore(application: Application) {
      * Use the [PhenixChannel.timeShiftHead] to check the current loop position.
      */
     fun seekTimeShift(alias: String, offset: Long) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.seekTimeShift(alias, offset)
         }
-        repository.seekTimeShift(alias, offset)
     }
 
     /**
@@ -482,11 +435,9 @@ class PhenixCore(application: Application) {
      * Use the [PhenixChannel.timeShiftHead] to check the current loop position.
      */
     fun playTimeShift(alias: String) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.playTimeShift(alias)
         }
-        repository.playTimeShift(alias)
     }
 
     /**
@@ -497,11 +448,9 @@ class PhenixCore(application: Application) {
      * Use the [PhenixChannel.timeShiftHead] to check the current loop position.
      */
     fun pauseTimeShift(alias: String) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.pauseTimeShift(alias)
         }
-        repository.pauseTimeShift(alias)
     }
 
     /**
@@ -512,11 +461,9 @@ class PhenixCore(application: Application) {
      * Use the [PhenixChannel.timeShiftHead] to check the current loop position.
      */
     fun stopTimeShift(alias: String) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.stopTimeShift(alias)
         }
-        repository.stopTimeShift(alias)
     }
 
     /**
@@ -528,22 +475,18 @@ class PhenixCore(application: Application) {
      * Ultra High Definition (UHD) is a value of: 8500 000
      */
     fun limitBandwidth(alias: String, bandwidth: Long) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.limitBandwidth(alias, bandwidth)
         }
-        repository.limitBandwidth(alias, bandwidth)
     }
 
     /**
      * Release the bandwidth limiter for the given alias.
      */
     fun releaseBandwidthLimiter(alias: String) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.releaseBandwidthLimiter(alias)
         }
-        repository.releaseBandwidthLimiter(alias)
     }
 
     /**
@@ -553,11 +496,9 @@ class PhenixCore(application: Application) {
      * initializing the [PhenixCore] object.
      */
     fun subscribeForMessages(alias: String) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.subscribeForMessages(alias)
         }
-        repository.subscribeForMessages(alias)
     }
 
     /**
@@ -566,11 +507,9 @@ class PhenixCore(application: Application) {
      * The [members] list will be updated when the [PhenixMember.isVideoEnabled] changes for your self member.
      */
     fun stopPublishingToRoom() {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.stopPublishingToRoom()
         }
-        repository.stopPublishingToRoom()
     }
 
     /**
@@ -579,11 +518,9 @@ class PhenixCore(application: Application) {
      * The [channels] list will be updated when the [PhenixChannel.channelState] changes.
      */
     fun stopPublishingToChannel() {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.stopPublishingToChannel()
         }
-        repository.stopPublishingToChannel()
     }
 
     /**
@@ -592,11 +529,9 @@ class PhenixCore(application: Application) {
      * to the nearest value 0.0 or 1.0.
      */
     fun setAudioLevel(memberId: String, level: Float) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.setAudioLevel(memberId, level)
         }
-        repository.setAudioLevel(memberId, level)
     }
 
     /**
@@ -605,11 +540,9 @@ class PhenixCore(application: Application) {
      * with error [PhenixError.SEND_MESSAGE_FAILED].
      */
     fun sendMessage(message: String, mimeType: String) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.sendMessage(message, mimeType)
         }
-        repository.sendMessage(message, mimeType)
     }
 
     /**
@@ -617,22 +550,18 @@ class PhenixCore(application: Application) {
      * When the value is changed, then the [members] flow will be updated.
      */
     fun selectMember(memberId: String, isSelected: Boolean) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.selectMember(memberId, isSelected)
         }
-        repository.selectMember(memberId, isSelected)
     }
 
     /**
      * Subscribes to all room member streams if a room is joined and the room has any members.
      */
     fun subscribeToRoom() {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.subscribeToRoom()
         }
-        repository.subscribeToRoom()
     }
 
     /**
@@ -640,23 +569,18 @@ class PhenixCore(application: Application) {
      * won't be changed.
      */
     fun updateMember(memberId: String, role: MemberRole? = null, active: MemberState? = null, name: String? = null) {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+        whenInitialized {
+            repository.updateMember(memberId, role, active, name)
         }
-        repository.updateMember(memberId, role, active, name)
     }
 
     /**
-     * Updates member role, state and / or name. If a `null` value is passed, then the property
-     * won't be changed.
+     * Collects the logs from the PhenixSDK
      */
-    fun collectLogs() {
-        if (!repository.isPhenixInitialized) {
-            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
-            return
+    fun collectLogs(onCollected: (String) -> Unit) {
+        whenInitialized {
+            repository.collectLogs(onCollected)
         }
-        repository.collectLogs()
     }
 
     /**
@@ -664,6 +588,14 @@ class PhenixCore(application: Application) {
      */
     fun release() {
         repository.release()
+    }
+
+    private fun whenInitialized(onInitialized: () -> Unit) {
+        if (!repository.isPhenixInitialized) {
+            _onError.tryEmit(PhenixError.NOT_INITIALIZED)
+            return
+        }
+        onInitialized()
     }
 
 }

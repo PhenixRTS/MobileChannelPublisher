@@ -18,6 +18,7 @@ import com.phenixrts.suite.phenixcore.common.launchUI
 import com.phenixrts.suite.phenixcore.PhenixCore
 import com.phenixrts.suite.phenixcore.repositories.models.PhenixEvent
 import com.phenixrts.suite.phenixcore.repositories.models.PhenixPublishConfiguration
+import com.phenixrts.suite.phenixdebugmenu.models.DebugEvent
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -68,11 +69,14 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.observeDebugMenu(
             binding.debugMenu,
-            onError = {
-                binding.root.showSnackBar(getString(R.string.err_share_logs_failed), Snackbar.LENGTH_LONG)
+            onError = { error ->
+                binding.root.showSnackBar(error, Snackbar.LENGTH_LONG)
             },
-            onShow = {
-                binding.debugMenu.showAppChooser(this@MainActivity)
+            onEvent = { event ->
+                when (event) {
+                    DebugEvent.SHOW_MENU -> binding.debugMenu.showAppChooser(this@MainActivity)
+                    DebugEvent.FILES_DELETED -> binding.root.showSnackBar(getString(R.string.files_deleted), Snackbar.LENGTH_LONG)
+                }
             }
         )
         binding.debugMenu.onStart(getString(R.string.debug_app_version,
@@ -95,7 +99,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (binding.debugMenu.isClosed()) {
+        if (binding.debugMenu.isOpened()) {
+            binding.debugMenu.hide()
+        } else {
             super.onBackPressed()
         }
     }
