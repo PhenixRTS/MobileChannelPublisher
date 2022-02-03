@@ -4,7 +4,6 @@
 
 package com.phenixrts.suite.channelpublisher.injection
 
-import com.phenixrts.suite.channelpublisher.BuildConfig
 import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
 import com.phenixrts.suite.phenixcore.PhenixCore
 import dagger.Module

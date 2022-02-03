@@ -9,7 +9,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
 import com.phenixrts.suite.channelpublisher.R
 import com.phenixrts.suite.channelpublisher.common.*
 import com.phenixrts.suite.channelpublisher.databinding.ActivitySplashBinding
@@ -40,12 +39,11 @@ class SplashActivity : EasyPermissionActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         Timber.d("Splash activity created")
         super.onCreate(savedInstanceState)
-        ChannelPublisherApplication.component.inject(this)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
         launchUI {
             phenixCore.onError.collect { error ->
-                if (error == PhenixError.FAILED_TO_INITIALIZE) {
+                if (error == PhenixError.FAILED_TO_INITIALIZE || error == PhenixError.MISSING_TOKEN) {
                     Timber.d("Splash: Failed to initialize Phenix Core: $error")
                     showErrorDialog(error.message)
                 }
@@ -68,6 +66,7 @@ class SplashActivity : EasyPermissionActivity() {
         deepLink: String
     ) {
         launchUI {
+            Timber.d("Deep link queried: $status, $configuration")
             when (status) {
                 DeepLinkStatus.RELOAD -> showErrorDialog(getString(R.string.err_configuration_changed))
                 DeepLinkStatus.READY -> if (arePermissionsGranted()) {
@@ -85,18 +84,18 @@ class SplashActivity : EasyPermissionActivity() {
         }
     }
 
-    private fun initializePhenixCore(configuration: PhenixDeepLinkConfiguration) {
+    private fun initializePhenixCore(configuration: PhenixDeepLinkConfiguration) = launchUI {
         timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT_DELAY)
         Timber.d("Initializing phenix core: $configuration")
         phenixCore.init(configuration)
     }
 
-    private fun showLandingScreen() = launchUI {
+    private fun showLandingScreen() {
         val channelAlias = phenixCore.configuration?.selectedAlias?.takeIf { it.isNotBlank() }
             ?: phenixCore.configuration?.channelAliases?.firstOrNull()
         if (channelAlias == null) {
             showErrorDialog(getString(R.string.err_invalid_deep_link))
-            return@launchUI
+            return
         }
         timeoutHandler.removeCallbacks(timeoutRunnable)
         Timber.d("Navigating to Landing Screen: $channelAlias")

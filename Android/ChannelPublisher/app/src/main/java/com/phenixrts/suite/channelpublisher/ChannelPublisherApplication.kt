@@ -7,9 +7,11 @@ package com.phenixrts.suite.channelpublisher
 import android.app.Application
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import com.phenixrts.suite.channelpublisher.common.LineNumberDebugTree
 import com.phenixrts.suite.channelpublisher.injection.DaggerInjectionComponent
 import com.phenixrts.suite.channelpublisher.injection.InjectionComponent
 import com.phenixrts.suite.channelpublisher.injection.InjectionModule
+import timber.log.Timber
 
 class ChannelPublisherApplication : Application(), ViewModelStoreOwner {
 
@@ -19,6 +21,9 @@ class ChannelPublisherApplication : Application(), ViewModelStoreOwner {
 
     override fun onCreate() {
         super.onCreate()
+        if (BuildConfig.DEBUG) {
+            Timber.plant(LineNumberDebugTree("ChannelPublisher"))
+        }
         component = DaggerInjectionComponent.builder().injectionModule(InjectionModule(this)).build()
     }
 
