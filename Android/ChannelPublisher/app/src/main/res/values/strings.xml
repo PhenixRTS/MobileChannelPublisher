@@ -28,25 +28,9 @@
         <item>AEC off</item>
     </string-array>
 
-    <string-array name="camera_mbr">
-        <item>MBR off</item>
-        <item>MBR auto</item>
-        <item>VP8</item>
-        <item>H264</item>
-    </string-array>
-
     <string-array name="camera_fps">
         <item>15 fps</item>
         <item>30 fps</item>
-    </string-array>
-
-    <string-array name="camera_resolution">
-        <item>144p</item>
-        <item>240p</item>
-        <item>360p</item>
-        <item>480p</item>
-        <item>720p</item>
-        <item>1080p</item>
     </string-array>
 
 </resources>

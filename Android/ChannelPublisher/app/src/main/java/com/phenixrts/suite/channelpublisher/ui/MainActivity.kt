@@ -52,14 +52,16 @@ class MainActivity : AppCompatActivity() {
                 updateState(event)
             }
         }
+        launchUI {
+            viewModel.mediaState.collect { state ->
+                switchPreview(state.isVideoEnabled)
+            }
+        }
 
         binding.configuration.publishButton.setOnClickListener {
             Timber.d("Publish button clicked")
             showLoading()
-            viewModel.publishToChannel(
-                capabilities = getCapabilities().plus(getStreamQuality()),
-                configuration = getPublishConfiguration()
-            )
+            viewModel.publishToChannel(configuration = getPublishConfiguration())
         }
 
         binding.endStreamButton.setOnClickListener {
@@ -79,13 +81,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         )
-        binding.debugMenu.onStart(getString(R.string.debug_app_version,
-            BuildConfig.VERSION_NAME,
-            BuildConfig.VERSION_CODE
-        ), getString(R.string.debug_sdk_version,
-            com.phenixrts.sdk.BuildConfig.VERSION_NAME,
-            com.phenixrts.sdk.BuildConfig.VERSION_CODE
-        ))
+        binding.debugMenu.onStart(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE.toString())
 
         viewModel.showPublisherPreview(binding.channelSurface)
         viewModel.onEvent.replayCache.lastOrNull()?.let { event ->
@@ -110,29 +106,27 @@ class MainActivity : AppCompatActivity() {
         Timber.d("Initialize drop downs")
         binding.configuration.spinnerCameraFacing.setSelection(selectedCameraFacing)
         binding.configuration.spinnerCameraFps.setSelection(selectedFpsOption)
-        binding.configuration.spinnerCameraMbr.setSelection(selectedMbrOption)
-        binding.configuration.spinnerCameraQuality.setSelection(selectedQualityOption)
         binding.configuration.spinnerEchoCancellation.setSelection(selectedAecOption)
         binding.configuration.spinnerMicrophone.setSelection(selectedMicrophoneOption)
 
         binding.configuration.spinnerCameraFacing.onSelectionChanged { index ->
             Timber.d("Camera facing selected: $index")
-            selectedCameraFacing = index
+            if (selectedCameraFacing != index) {
+                selectedCameraFacing = index
+                if (index == CAMERA_OFF_INDEX) {
+                    Timber.d("Disabling camera: $index")
+                    phenixCore.setSelfVideoEnabled(false)
+                } else {
+                    Timber.d("Flipping camera: $index")
+                    phenixCore.setSelfVideoEnabled(true)
+                    phenixCore.setCameraFacing(getCameraFacing())
+                }
+            }
         }
 
         binding.configuration.spinnerCameraFps.onSelectionChanged { index ->
             Timber.d("Camera FPS selected: $index")
             selectedFpsOption = index
-        }
-
-        binding.configuration.spinnerCameraMbr.onSelectionChanged { index ->
-            Timber.d("Camera MBR selected: $index")
-            selectedMbrOption = index
-        }
-
-        binding.configuration.spinnerCameraQuality.onSelectionChanged { index ->
-            Timber.d("Camera quality selected: $index")
-            selectedQualityOption = index
         }
 
         binding.configuration.spinnerEchoCancellation.onSelectionChanged { index ->
@@ -159,6 +153,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun switchPreview(enabled: Boolean) {
+        binding.channelSurface.visibility = if (enabled) View.VISIBLE else View.GONE
+    }
+
     private fun showLoading() {
         binding.loadingProgressBar.visibility = View.VISIBLE
     }
@@ -180,7 +178,8 @@ class MainActivity : AppCompatActivity() {
     private fun getPublishConfiguration() = PhenixPublishConfiguration(
         cameraFacingMode = getCameraFacing(),
         cameraFps = getCameraFps().toDouble(),
-        microphoneEnabled = getMicrophoneEnabled(),
+        isAudioEnabled = getMicrophoneEnabled(),
+        isVideoEnabled = selectedCameraFacing != CAMERA_OFF_INDEX,
         echoCancellationMode = getEchoCancellation()
     )
 

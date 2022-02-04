@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import com.phenixrts.sdk.BuildConfig
 import com.phenixrts.suite.channelpublisher.R
 import com.phenixrts.suite.channelpublisher.common.*
 import com.phenixrts.suite.channelpublisher.databinding.ActivitySplashBinding
@@ -37,7 +38,7 @@ class SplashActivity : EasyPermissionActivity() {
     override fun isAlreadyInitialized() = phenixCore.isInitialized
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Timber.d("Splash activity created")
+        Timber.d("Splash activity created: ${BuildConfig.VERSION_CODE}, ${BuildConfig.VERSION_NAME}")
         super.onCreate(savedInstanceState)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)

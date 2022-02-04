@@ -7,6 +7,7 @@ package com.phenixrts.suite.channelpublisher.ui
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.os.Build
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -23,7 +24,7 @@ abstract class EasyPermissionActivity : DeepLinkActivity() {
 
     private val permissionRequestHistory = hashMapOf<Int, (a: Boolean) -> Unit>()
 
-    override val additionalConfiguration = hashMapOf<String, String>()
+    override val additionalConfiguration = hashMapOf(Pair("publishingEnabled", "true"))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ChannelPublisherApplication.component.inject(this)
@@ -38,7 +39,7 @@ abstract class EasyPermissionActivity : DeepLinkActivity() {
         }
     }
 
-    fun arePermissionsGranted(): Boolean = hasCameraPermission() && hasRecordAudioPermission()
+    fun arePermissionsGranted(): Boolean = hasCameraPermission() && hasRecordAudioPermission() && hasBluetoothPermission()
 
     fun askForPermissions(callback: (granted: Boolean) -> Unit) {
         run {
@@ -48,6 +49,9 @@ abstract class EasyPermissionActivity : DeepLinkActivity() {
             }
             if (!hasCameraPermission()) {
                 permissions.add(Manifest.permission.CAMERA)
+            }
+            if (!hasBluetoothPermission() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
             }
             if (permissions.isNotEmpty()) {
                 val requestCode = Date().time.toInt().low16bits()
@@ -66,5 +70,8 @@ abstract class EasyPermissionActivity : DeepLinkActivity() {
 
     private fun hasRecordAudioPermission(): Boolean =
         ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PERMISSION_GRANTED
+
+    private fun hasBluetoothPermission(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+        ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PERMISSION_GRANTED else true
 
 }

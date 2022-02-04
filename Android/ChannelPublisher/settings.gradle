@@ -4,5 +4,5 @@
 rootProject.name='Channel Publisher'
 include ':app'
 include ':phenixcore'
-include ':phenixdeeplinks'
 include ':phenixdebugmenu'
+include ':phenixdeeplink'
