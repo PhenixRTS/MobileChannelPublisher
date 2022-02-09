@@ -13,8 +13,6 @@
 .externalNativeBuild
 .cxx
 /.idea/
-/gradlew
-/gradlew.bat
 /app/.gitignore
 /app/proguard-rules.pro
 /app/build/
