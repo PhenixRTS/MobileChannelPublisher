@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="19529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19519"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Publisher View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController storyboardIdentifier="PublisherViewController" id="BYZ-38-t0r" customClass="PublisherViewController" customModule="ChannelPublisher" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="TT1-JA-JXu">
+                                <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            </view>
+                            <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" alignment="center" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="8U9-5h-4Wz">
+                                <rect key="frame" x="20" y="64" width="374" height="98"/>
+                                <subviews>
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="JiX-4y-dVL">
+                                        <rect key="frame" x="0.0" y="0.0" width="177" height="98"/>
+                                        <subviews>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yjr-mT-b0t">
+                                                <rect key="frame" x="0.0" y="0.0" width="177" height="44"/>
+                                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="44" id="m4l-Op-jKz"/>
+                                                </constraints>
+                                                <color key="tintColor" systemColor="labelColor"/>
+                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="10" maxY="0.0"/>
+                                                <state key="normal" title="Front camera" image="camera">
+                                                    <color key="titleColor" systemColor="labelColor"/>
+                                                </state>
+                                                <userDefinedRuntimeAttributes>
+                                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                                        <integer key="value" value="10"/>
+                                                    </userDefinedRuntimeAttribute>
+                                                </userDefinedRuntimeAttributes>
+                                                <connections>
+                                                    <action selector="cameraButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="1fz-D3-64t"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Rd9-Oh-Lbh">
+                                                <rect key="frame" x="0.0" y="54" width="177" height="44"/>
+                                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="44" id="aIV-T6-BgU"/>
+                                                </constraints>
+                                                <color key="tintColor" systemColor="labelColor"/>
+                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="10" maxY="0.0"/>
+                                                <state key="normal" title="15 fps" image="square.stack">
+                                                    <color key="titleColor" systemColor="labelColor"/>
+                                                </state>
+                                                <userDefinedRuntimeAttributes>
+                                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                                        <integer key="value" value="10"/>
+                                                    </userDefinedRuntimeAttribute>
+                                                </userDefinedRuntimeAttributes>
+                                                <connections>
+                                                    <action selector="frameRateButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="SrQ-PM-vA0"/>
+                                                </connections>
+                                            </button>
+                                        </subviews>
+                                    </stackView>
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="MIK-3y-euA">
+                                        <rect key="frame" x="197" y="0.0" width="177" height="98"/>
+                                        <subviews>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="lZN-JC-R0E">
+                                                <rect key="frame" x="0.0" y="0.0" width="177" height="44"/>
+                                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="44" id="q26-tZ-2dc"/>
+                                                </constraints>
+                                                <color key="tintColor" systemColor="labelColor"/>
+                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="10" maxY="0.0"/>
+                                                <state key="normal" title="Microphone" image="mic">
+                                                    <color key="titleColor" systemColor="labelColor"/>
+                                                </state>
+                                                <userDefinedRuntimeAttributes>
+                                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                                        <integer key="value" value="10"/>
+                                                    </userDefinedRuntimeAttribute>
+                                                </userDefinedRuntimeAttributes>
+                                                <connections>
+                                                    <action selector="microphoneButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="892-Wg-gY2"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3qX-uo-SM0">
+                                                <rect key="frame" x="0.0" y="54" width="177" height="44"/>
+                                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="44" id="aNt-kX-swB"/>
+                                                </constraints>
+                                                <color key="tintColor" systemColor="labelColor"/>
+                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="10" maxY="0.0"/>
+                                                <state key="normal" title="AEC on" image="ear">
+                                                    <color key="titleColor" systemColor="labelColor"/>
+                                                </state>
+                                                <userDefinedRuntimeAttributes>
+                                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                                        <integer key="value" value="10"/>
+                                                    </userDefinedRuntimeAttribute>
+                                                </userDefinedRuntimeAttributes>
+                                                <connections>
+                                                    <action selector="audioEchoCancellationButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="tAx-KN-I7X"/>
+                                                </connections>
+                                            </button>
+                                        </subviews>
+                                    </stackView>
+                                </subviews>
+                            </stackView>
+                            <stackView opaque="NO" contentMode="scaleToFill" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="Fey-bb-bfw">
+                                <rect key="frame" x="20" y="798" width="374" height="44"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="vsF-iG-mxw">
+                                        <rect key="frame" x="0.0" y="0.0" width="374" height="44"/>
+                                        <color key="backgroundColor" systemColor="systemGreenColor"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="44" id="yX2-jZ-zZw"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
+                                        <state key="normal" title="Start broadcast">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        </state>
+                                        <userDefinedRuntimeAttributes>
+                                            <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                                <integer key="value" value="10"/>
+                                            </userDefinedRuntimeAttribute>
+                                        </userDefinedRuntimeAttributes>
+                                        <connections>
+                                            <action selector="broadcastButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="wCs-xz-07w"/>
+                                        </connections>
+                                    </button>
+                                    <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tHX-wA-kjz">
+                                        <rect key="frame" x="0.0" y="0.0" width="0.0" height="44"/>
+                                        <color key="backgroundColor" systemColor="systemRedColor"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="44" id="HSf-rt-R8H"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
+                                        <state key="normal" title="Stop broadcast">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        </state>
+                                        <userDefinedRuntimeAttributes>
+                                            <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                                <integer key="value" value="10"/>
+                                            </userDefinedRuntimeAttribute>
+                                        </userDefinedRuntimeAttributes>
+                                        <connections>
+                                            <action selector="stopBroadcastButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="7jr-G3-TBh"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                            </stackView>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="an7-qJ-qiV">
+                                <rect key="frame" x="197" y="443" width="20" height="20"/>
+                                <color key="color" systemColor="labelColor"/>
+                            </activityIndicatorView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="Fey-bb-bfw" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="4Oe-DM-t8H"/>
+                            <constraint firstItem="an7-qJ-qiV" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="546-On-ehZ"/>
+                            <constraint firstAttribute="bottom" secondItem="TT1-JA-JXu" secondAttribute="bottom" id="9hL-Rw-7MN"/>
+                            <constraint firstAttribute="trailing" secondItem="TT1-JA-JXu" secondAttribute="trailing" id="IqA-bK-cHA"/>
+                            <constraint firstItem="an7-qJ-qiV" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="MfO-dB-LzZ"/>
+                            <constraint firstItem="TT1-JA-JXu" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="WXw-Q1-jFq"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="Fey-bb-bfw" secondAttribute="trailing" constant="20" id="aRh-uC-KPb"/>
+                            <constraint firstItem="8U9-5h-4Wz" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="m22-si-Uhb"/>
+                            <constraint firstItem="8U9-5h-4Wz" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="20" id="rY6-Fg-NXw"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="8U9-5h-4Wz" secondAttribute="trailing" constant="20" id="wQ2-M7-vwc"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="Fey-bb-bfw" secondAttribute="bottom" constant="20" id="wSO-9E-SI8"/>
+                            <constraint firstItem="TT1-JA-JXu" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="zHk-QW-7eu"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="activityIndicatorView" destination="an7-qJ-qiV" id="6Rk-Eg-cTo"/>
+                        <outlet property="audioEchoCancellationButton" destination="3qX-uo-SM0" id="UFK-JS-MFB"/>
+                        <outlet property="cameraButton" destination="yjr-mT-b0t" id="sQb-pN-ZU9"/>
+                        <outlet property="frameRateButton" destination="Rd9-Oh-Lbh" id="md3-ef-MIq"/>
+                        <outlet property="microphoneButton" destination="lZN-JC-R0E" id="UAX-Hf-7Xw"/>
+                        <outlet property="startBroadcastButton" destination="vsF-iG-mxw" id="hZJ-9P-irY"/>
+                        <outlet property="stopBroadcastButton" destination="tHX-wA-kjz" id="c6f-P3-F7l"/>
+                        <outlet property="surfaceView" destination="TT1-JA-JXu" id="pmP-Cg-0my"/>
+                        <outletCollection property="broadcastConfigurationButtons" destination="yjr-mT-b0t" collectionClass="NSMutableArray" id="c5x-ZZ-28Y"/>
+                        <outletCollection property="broadcastConfigurationButtons" destination="Rd9-Oh-Lbh" collectionClass="NSMutableArray" id="wPo-5S-1E1"/>
+                        <outletCollection property="broadcastConfigurationButtons" destination="lZN-JC-R0E" collectionClass="NSMutableArray" id="Dpv-E8-diq"/>
+                        <outletCollection property="broadcastConfigurationButtons" destination="3qX-uo-SM0" collectionClass="NSMutableArray" id="510-nA-eTC"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="139" y="81"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="camera" width="16" height="12"/>
+        <image name="ear" width="10" height="14"/>
+        <image name="mic" width="9" height="14"/>
+        <image name="square.stack" width="12" height="15"/>
+        <systemColor name="labelColor">
+            <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemGreenColor">
+            <color red="0.20392156862745098" green="0.7803921568627451" blue="0.34901960784313724" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+        <systemColor name="systemRedColor">
+            <color red="1" green="0.23137254901960785" blue="0.18823529411764706" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+    </resources>
+</document>
