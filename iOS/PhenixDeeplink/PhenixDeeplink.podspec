@@ -16,6 +16,6 @@ A framework, which provides out-of-box application deep link processing.
                         }
   s.author           = "Phenix Real Time Solutions, Inc."
   s.source           = { :git => '{LINK TO PhenixDeeplink GIT REPO}', :tag => s.version.to_s }
-  s.ios.deployment_target = '12.0'
+  s.ios.deployment_target = '13.0'
   s.source_files     = 'Source/**/*.swift'
 end

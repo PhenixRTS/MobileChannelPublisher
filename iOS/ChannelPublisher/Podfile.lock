@@ -31,7 +31,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   PhenixCore: 6b23f145fa824074cf8fe50fdf60d59ee932b93c
   PhenixDebug: 009fd4dad0f965e67decc52f6afeee85e869c14b
-  PhenixDeeplink: 67dfe518f7d8c98acd39825117f349eba1db5165
+  PhenixDeeplink: f336866983bd5bc8cb72fe4f8c38680bb0cff799
   PhenixSdk: fd0651859898559a33477d704a8a1546456d06df
   SwiftLint: 32ee33ded0636d0905ef6911b2b67bbaeeedafa5
 

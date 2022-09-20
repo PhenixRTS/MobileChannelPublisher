@@ -3,7 +3,7 @@
 //
 
 import Combine
-import Foundation
+import UIKit
 
 class PhenixMediaInterruptionService {
     private let notificationCenter: NotificationCenter
