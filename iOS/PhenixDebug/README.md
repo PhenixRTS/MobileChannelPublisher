@@ -7,7 +7,6 @@ and the `PhenixSdk` versions and shares run-time logs from the SDK.
 * iOS 13.0+
 * Xcode 12.5.1+
 * Swift 5.4+
-* PhenixCore framework
 
 ## Installation
 
@@ -23,9 +22,11 @@ To integrate `PhenixDebug` into your Xcode project using CocoaPods:
 2. Modify your `Podfile`:
 
 ```ruby
+source 'https://cdn.cocoapods.org/'
+source 'git@github.com:PhenixRTS/CocoaPodsSpecs.git' # Phenix private repository
+
 target 'your app name'
   use_frameworks!
-  pod 'PhenixCore', :path => 'path/to/PhenixCore'
   pod 'PhenixDebug', :path => './PhenixDebug'
 end
 ```
@@ -68,11 +69,12 @@ import PhenixSdk
 import UIKit
 
 class ViewController: UIViewController {
-    var core: PhenixCoreDebuggable! // previously obtained
+    ...
 
-    @objc func contentViewTappedMultipleTimes() {
-        let viewModel = DebugViewController.ViewModel(core: core)
-        let vc = DebugViewController(viewModel: viewModel)
+    @objc func surfaceViewTappedMultipleTimes() {
+        let pcast: PhenixPCast = ...  // previously obtained
+        let viewModel = PhenixDebugViewModel(pcast: pcast)
+        let vc = PhenixDebugViewController(viewModel: viewModel)
         present(vc, animated: true)
     }
 }

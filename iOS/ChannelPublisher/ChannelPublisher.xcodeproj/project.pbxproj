@@ -7,44 +7,44 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		483D53E127F705E70014E2ED /* PublisherViewModelDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 483D53E027F705E70014E2ED /* PublisherViewModelDelegate.swift */; };
-		483D53E327F71B220014E2ED /* PublisherMediaOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 483D53E227F71B220014E2ED /* PublisherMediaOptions.swift */; };
-		48C037CE27F47A6B00F043C8 /* AppSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C037CC27F47A6A00F043C8 /* AppSession.swift */; };
-		48C037CF27F47A6B00F043C8 /* Bootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C037CD27F47A6B00F043C8 /* Bootstrap.swift */; };
-		48C037D327F47AF600F043C8 /* LaunchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C037D227F47AF600F043C8 /* LaunchViewController.swift */; };
-		48C037D627F47B5100F043C8 /* PublisherViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C037D527F47B5100F043C8 /* PublisherViewController.swift */; };
-		48C037D827F47B5800F043C8 /* PublisherViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C037D727F47B5800F043C8 /* PublisherViewModel.swift */; };
-		48C037DB27F47B9E00F043C8 /* LaunchScreenImitation.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 48C037D927F47B9E00F043C8 /* LaunchScreenImitation.storyboard */; };
-		48C037DF27F47E2E00F043C8 /* Storyboarded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C037DC27F47E2E00F043C8 /* Storyboarded.swift */; };
-		48C037E027F47E2E00F043C8 /* UIViewController+TopViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C037DD27F47E2E00F043C8 /* UIViewController+TopViewController.swift */; };
-		48C037E127F47E2E00F043C8 /* OSLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C037DE27F47E2E00F043C8 /* OSLog.swift */; };
 		A53E3954B1D365DF3BDCF6B5 /* Pods_ChannelPublisher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E21C3E3794AE6F26F5C6156 /* Pods_ChannelPublisher.framework */; };
+		B575474825CD377800AC1309 /* PhenixChannelPublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = B575474725CD377800AC1309 /* PhenixChannelPublisher.swift */; };
+		B575474C25CD74A300AC1309 /* PhenixChannelPublisherDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B575474B25CD74A300AC1309 /* PhenixChannelPublisherDelegate.swift */; };
+		B575475725CD899F00AC1309 /* UserMediaStreamController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B575475625CD899E00AC1309 /* UserMediaStreamController.swift */; };
+		B576138F25D4167A006ACF52 /* UserMediaConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B576138E25D4167A006ACF52 /* UserMediaConfiguration.swift */; };
+		B576139525D41B43006ACF52 /* PublishOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = B576139425D41B43006ACF52 /* PublishOption.swift */; };
+		B576139C25D556E4006ACF52 /* ValidationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B576139B25D556E4006ACF52 /* ValidationProvider.swift */; };
+		B57613A025D55C02006ACF52 /* UserMediaStreamProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B576139F25D55C02006ACF52 /* UserMediaStreamProvider.swift */; };
 		B586C8C725C9499500ED5757 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B586C8C625C9499500ED5757 /* AppDelegate.swift */; };
+		B586C8CB25C9499500ED5757 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B586C8CA25C9499500ED5757 /* ViewController.swift */; };
 		B586C8CE25C9499500ED5757 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B586C8CC25C9499500ED5757 /* Main.storyboard */; };
 		B586C8D025C9499800ED5757 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B586C8CF25C9499800ED5757 /* Assets.xcassets */; };
 		B586C8D325C9499800ED5757 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B586C8D125C9499800ED5757 /* LaunchScreen.storyboard */; };
+		B586C8EA25C9622B00ED5757 /* PhenixConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B586C8E925C9622B00ED5757 /* PhenixConfiguration.swift */; };
+		B586C8ED25C9626200ED5757 /* PhenixRequestStatusLocalized.swift in Sources */ = {isa = PBXBuildFile; fileRef = B586C8EC25C9626200ED5757 /* PhenixRequestStatusLocalized.swift */; };
+		B5BED7A425C97DB400B734F0 /* PhenixDeeplinkModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5BED7A325C97DB400B734F0 /* PhenixDeeplinkModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1FF1F119DA730A4B97F4ACC8 /* Pods-ChannelPublisher.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChannelPublisher.release.xcconfig"; path = "Target Support Files/Pods-ChannelPublisher/Pods-ChannelPublisher.release.xcconfig"; sourceTree = "<group>"; };
-		483D53E027F705E70014E2ED /* PublisherViewModelDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublisherViewModelDelegate.swift; sourceTree = "<group>"; };
-		483D53E227F71B220014E2ED /* PublisherMediaOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublisherMediaOptions.swift; sourceTree = "<group>"; };
-		48C037CC27F47A6A00F043C8 /* AppSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppSession.swift; sourceTree = "<group>"; };
-		48C037CD27F47A6B00F043C8 /* Bootstrap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Bootstrap.swift; sourceTree = "<group>"; };
-		48C037D227F47AF600F043C8 /* LaunchViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LaunchViewController.swift; sourceTree = "<group>"; };
-		48C037D527F47B5100F043C8 /* PublisherViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublisherViewController.swift; sourceTree = "<group>"; };
-		48C037D727F47B5800F043C8 /* PublisherViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublisherViewModel.swift; sourceTree = "<group>"; };
-		48C037DA27F47B9E00F043C8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreenImitation.storyboard; sourceTree = "<group>"; };
-		48C037DC27F47E2E00F043C8 /* Storyboarded.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Storyboarded.swift; sourceTree = "<group>"; };
-		48C037DD27F47E2E00F043C8 /* UIViewController+TopViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIViewController+TopViewController.swift"; sourceTree = "<group>"; };
-		48C037DE27F47E2E00F043C8 /* OSLog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OSLog.swift; sourceTree = "<group>"; };
 		7E21C3E3794AE6F26F5C6156 /* Pods_ChannelPublisher.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ChannelPublisher.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B575474725CD377800AC1309 /* PhenixChannelPublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhenixChannelPublisher.swift; sourceTree = "<group>"; };
+		B575474B25CD74A300AC1309 /* PhenixChannelPublisherDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhenixChannelPublisherDelegate.swift; sourceTree = "<group>"; };
+		B575475625CD899E00AC1309 /* UserMediaStreamController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMediaStreamController.swift; sourceTree = "<group>"; };
+		B576138E25D4167A006ACF52 /* UserMediaConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMediaConfiguration.swift; sourceTree = "<group>"; };
+		B576139425D41B43006ACF52 /* PublishOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishOption.swift; sourceTree = "<group>"; };
+		B576139B25D556E4006ACF52 /* ValidationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationProvider.swift; sourceTree = "<group>"; };
+		B576139F25D55C02006ACF52 /* UserMediaStreamProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMediaStreamProvider.swift; sourceTree = "<group>"; };
 		B586C8C325C9499500ED5757 /* ChannelPublisher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChannelPublisher.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B586C8C625C9499500ED5757 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		B586C8CA25C9499500ED5757 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		B586C8CD25C9499500ED5757 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		B586C8CF25C9499800ED5757 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B586C8D225C9499800ED5757 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B586C8D425C9499800ED5757 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B586C8E925C9622B00ED5757 /* PhenixConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhenixConfiguration.swift; sourceTree = "<group>"; };
+		B586C8EC25C9626200ED5757 /* PhenixRequestStatusLocalized.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhenixRequestStatusLocalized.swift; sourceTree = "<group>"; };
+		B5BED7A325C97DB400B734F0 /* PhenixDeeplinkModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhenixDeeplinkModel.swift; sourceTree = "<group>"; };
 		B5BED7BE25C988A600B734F0 /* ChannelPublisher.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ChannelPublisher.entitlements; sourceTree = "<group>"; };
 		B8AD68D0364DC298A8CDFDE9 /* Pods-ChannelPublisher.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChannelPublisher.debug.xcconfig"; path = "Target Support Files/Pods-ChannelPublisher/Pods-ChannelPublisher.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -70,32 +70,23 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
-		48C037D027F47AE100F043C8 /* Scenes */ = {
+		B575474625CD375500AC1309 /* Publisher */ = {
 			isa = PBXGroup;
 			children = (
-				48C037D127F47AF600F043C8 /* LaunchScene */,
-				48C037D427F47AFA00F043C8 /* PublisherScene */,
+				B575474725CD377800AC1309 /* PhenixChannelPublisher.swift */,
+				B575474B25CD74A300AC1309 /* PhenixChannelPublisherDelegate.swift */,
 			);
-			path = Scenes;
+			path = Publisher;
 			sourceTree = "<group>";
 		};
-		48C037D127F47AF600F043C8 /* LaunchScene */ = {
+		B575475525CD898A00AC1309 /* Media */ = {
 			isa = PBXGroup;
 			children = (
-				48C037D227F47AF600F043C8 /* LaunchViewController.swift */,
+				B576138E25D4167A006ACF52 /* UserMediaConfiguration.swift */,
+				B575475625CD899E00AC1309 /* UserMediaStreamController.swift */,
+				B576139F25D55C02006ACF52 /* UserMediaStreamProvider.swift */,
 			);
-			path = LaunchScene;
-			sourceTree = "<group>";
-		};
-		48C037D427F47AFA00F043C8 /* PublisherScene */ = {
-			isa = PBXGroup;
-			children = (
-				483D53E227F71B220014E2ED /* PublisherMediaOptions.swift */,
-				48C037D527F47B5100F043C8 /* PublisherViewController.swift */,
-				48C037D727F47B5800F043C8 /* PublisherViewModel.swift */,
-				483D53E027F705E70014E2ED /* PublisherViewModelDelegate.swift */,
-			);
-			path = PublisherScene;
+			path = Media;
 			sourceTree = "<group>";
 		};
 		B586C8BA25C9499500ED5757 = {
@@ -121,10 +112,10 @@
 			children = (
 				B5BED7BE25C988A600B734F0 /* ChannelPublisher.entitlements */,
 				B586C8C625C9499500ED5757 /* AppDelegate.swift */,
-				48C037CC27F47A6A00F043C8 /* AppSession.swift */,
-				48C037CD27F47A6B00F043C8 /* Bootstrap.swift */,
+				B586C8CA25C9499500ED5757 /* ViewController.swift */,
+				B5BED7A225C97DA600B734F0 /* Deeplink */,
+				B586C8E025C94DB200ED5757 /* Phenix */,
 				B586C8DE25C94DA200ED5757 /* Resources */,
-				48C037D027F47AE100F043C8 /* Scenes */,
 				B586C8DD25C94D9E00ED5757 /* Support */,
 				B586C8E125C94DB500ED5757 /* UserInterface */,
 			);
@@ -135,9 +126,6 @@
 			isa = PBXGroup;
 			children = (
 				B586C8D425C9499800ED5757 /* Info.plist */,
-				48C037DE27F47E2E00F043C8 /* OSLog.swift */,
-				48C037DC27F47E2E00F043C8 /* Storyboarded.swift */,
-				48C037DD27F47E2E00F043C8 /* UIViewController+TopViewController.swift */,
 			);
 			path = Support;
 			sourceTree = "<group>";
@@ -150,14 +138,34 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		B586C8E025C94DB200ED5757 /* Phenix */ = {
+			isa = PBXGroup;
+			children = (
+				B586C8E925C9622B00ED5757 /* PhenixConfiguration.swift */,
+				B586C8EC25C9626200ED5757 /* PhenixRequestStatusLocalized.swift */,
+				B576139425D41B43006ACF52 /* PublishOption.swift */,
+				B576139B25D556E4006ACF52 /* ValidationProvider.swift */,
+				B575475525CD898A00AC1309 /* Media */,
+				B575474625CD375500AC1309 /* Publisher */,
+			);
+			path = Phenix;
+			sourceTree = "<group>";
+		};
 		B586C8E125C94DB500ED5757 /* UserInterface */ = {
 			isa = PBXGroup;
 			children = (
 				B586C8D125C9499800ED5757 /* LaunchScreen.storyboard */,
-				48C037D927F47B9E00F043C8 /* LaunchScreenImitation.storyboard */,
 				B586C8CC25C9499500ED5757 /* Main.storyboard */,
 			);
 			path = UserInterface;
+			sourceTree = "<group>";
+		};
+		B5BED7A225C97DA600B734F0 /* Deeplink */ = {
+			isa = PBXGroup;
+			children = (
+				B5BED7A325C97DB400B734F0 /* PhenixDeeplinkModel.swift */,
+			);
+			path = Deeplink;
 			sourceTree = "<group>";
 		};
 		DEFF4F8D91E969CC2FEE812A /* Frameworks */ = {
@@ -179,9 +187,8 @@
 				B586C8BF25C9499500ED5757 /* Sources */,
 				B586C8C025C9499500ED5757 /* Frameworks */,
 				B586C8C125C9499500ED5757 /* Resources */,
-				483D53E427F71BB20014E2ED /* Static Analysis for Swift using SwiftLint */,
-				B586C8E725C94FD900ED5757 /* Catch bad copyrights */,
 				A5BA6170A0FDBEBF74D30D44 /* [CP] Embed Pods Frameworks */,
+				B586C8E725C94FD900ED5757 /* Catch bad copyrights */,
 			);
 			buildRules = (
 			);
@@ -230,7 +237,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				48C037DB27F47B9E00F043C8 /* LaunchScreenImitation.storyboard in Resources */,
 				B586C8D325C9499800ED5757 /* LaunchScreen.storyboard in Resources */,
 				B586C8D025C9499800ED5757 /* Assets.xcassets in Resources */,
 				B586C8CE25C9499500ED5757 /* Main.storyboard in Resources */,
@@ -240,24 +246,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		483D53E427F71BB20014E2ED /* Static Analysis for Swift using SwiftLint */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Static Analysis for Swift using SwiftLint";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/SwiftLint/swiftlint\"\n";
-		};
 		A5BA6170A0FDBEBF74D30D44 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -322,31 +310,24 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				48C037CE27F47A6B00F043C8 /* AppSession.swift in Sources */,
-				48C037D327F47AF600F043C8 /* LaunchViewController.swift in Sources */,
-				48C037CF27F47A6B00F043C8 /* Bootstrap.swift in Sources */,
-				48C037D627F47B5100F043C8 /* PublisherViewController.swift in Sources */,
-				483D53E327F71B220014E2ED /* PublisherMediaOptions.swift in Sources */,
-				48C037E127F47E2E00F043C8 /* OSLog.swift in Sources */,
+				B575474C25CD74A300AC1309 /* PhenixChannelPublisherDelegate.swift in Sources */,
+				B575474825CD377800AC1309 /* PhenixChannelPublisher.swift in Sources */,
+				B586C8CB25C9499500ED5757 /* ViewController.swift in Sources */,
+				B575475725CD899F00AC1309 /* UserMediaStreamController.swift in Sources */,
+				B5BED7A425C97DB400B734F0 /* PhenixDeeplinkModel.swift in Sources */,
+				B576139C25D556E4006ACF52 /* ValidationProvider.swift in Sources */,
+				B57613A025D55C02006ACF52 /* UserMediaStreamProvider.swift in Sources */,
+				B586C8ED25C9626200ED5757 /* PhenixRequestStatusLocalized.swift in Sources */,
+				B576139525D41B43006ACF52 /* PublishOption.swift in Sources */,
 				B586C8C725C9499500ED5757 /* AppDelegate.swift in Sources */,
-				483D53E127F705E70014E2ED /* PublisherViewModelDelegate.swift in Sources */,
-				48C037D827F47B5800F043C8 /* PublisherViewModel.swift in Sources */,
-				48C037DF27F47E2E00F043C8 /* Storyboarded.swift in Sources */,
-				48C037E027F47E2E00F043C8 /* UIViewController+TopViewController.swift in Sources */,
+				B576138F25D4167A006ACF52 /* UserMediaConfiguration.swift in Sources */,
+				B586C8EA25C9622B00ED5757 /* PhenixConfiguration.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		48C037D927F47B9E00F043C8 /* LaunchScreenImitation.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				48C037DA27F47B9E00F043C8 /* Base */,
-			);
-			name = LaunchScreenImitation.storyboard;
-			sourceTree = "<group>";
-		};
 		B586C8CC25C9499500ED5757 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (

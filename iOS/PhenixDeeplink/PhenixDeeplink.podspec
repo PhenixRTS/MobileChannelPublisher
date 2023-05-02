@@ -8,7 +8,7 @@ A framework, which provides out-of-box application deep link processing.
                        DESC
   s.homepage         = 'https://phenixrts.com'
   s.license          = { :type => "Proprietary", :text => <<-LICENSE
-                          Copyright 2022 Phenix Real Time Solutions, Inc.
+                          Copyright 2023 Phenix Real Time Solutions, Inc.
                           Confidential and Proprietary. All rights reserved.
                           By using this code you agree to the Phenix Terms of Service found online here:
                           http://phenixrts.com/terms-of-service.html

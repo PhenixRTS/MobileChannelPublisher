@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="19529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="20037" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19519"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="20020"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--Publisher View Controller-->
+        <!--View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController storyboardIdentifier="PublisherViewController" id="BYZ-38-t0r" customClass="PublisherViewController" customModule="ChannelPublisher" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="ChannelPublisher" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -92,11 +92,11 @@
                                                     <action selector="microphoneButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="892-Wg-gY2"/>
                                                 </connections>
                                             </button>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3qX-uo-SM0">
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5Ey-q5-LRY">
                                                 <rect key="frame" x="0.0" y="54" width="177" height="44"/>
                                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                                 <constraints>
-                                                    <constraint firstAttribute="height" constant="44" id="aNt-kX-swB"/>
+                                                    <constraint firstAttribute="height" constant="44" id="cpj-qM-stB"/>
                                                 </constraints>
                                                 <color key="tintColor" systemColor="labelColor"/>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="10" maxY="0.0"/>
@@ -109,7 +109,7 @@
                                                     </userDefinedRuntimeAttribute>
                                                 </userDefinedRuntimeAttributes>
                                                 <connections>
-                                                    <action selector="audioEchoCancellationButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="tAx-KN-I7X"/>
+                                                    <action selector="audioEchoCancellationButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="bVX-Lp-POz"/>
                                                 </connections>
                                             </button>
                                         </subviews>
@@ -183,7 +183,7 @@
                     </view>
                     <connections>
                         <outlet property="activityIndicatorView" destination="an7-qJ-qiV" id="6Rk-Eg-cTo"/>
-                        <outlet property="audioEchoCancellationButton" destination="3qX-uo-SM0" id="UFK-JS-MFB"/>
+                        <outlet property="audioEchoCancellationButton" destination="5Ey-q5-LRY" id="k65-hb-Mqu"/>
                         <outlet property="cameraButton" destination="yjr-mT-b0t" id="sQb-pN-ZU9"/>
                         <outlet property="frameRateButton" destination="Rd9-Oh-Lbh" id="md3-ef-MIq"/>
                         <outlet property="microphoneButton" destination="lZN-JC-R0E" id="UAX-Hf-7Xw"/>
@@ -193,7 +193,7 @@
                         <outletCollection property="broadcastConfigurationButtons" destination="yjr-mT-b0t" collectionClass="NSMutableArray" id="c5x-ZZ-28Y"/>
                         <outletCollection property="broadcastConfigurationButtons" destination="Rd9-Oh-Lbh" collectionClass="NSMutableArray" id="wPo-5S-1E1"/>
                         <outletCollection property="broadcastConfigurationButtons" destination="lZN-JC-R0E" collectionClass="NSMutableArray" id="Dpv-E8-diq"/>
-                        <outletCollection property="broadcastConfigurationButtons" destination="3qX-uo-SM0" collectionClass="NSMutableArray" id="510-nA-eTC"/>
+                        <outletCollection property="broadcastConfigurationButtons" destination="5Ey-q5-LRY" collectionClass="NSMutableArray" id="1Ao-Fx-3HS"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
