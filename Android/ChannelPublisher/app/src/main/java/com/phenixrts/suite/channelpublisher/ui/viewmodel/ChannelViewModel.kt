@@ -1,81 +1,42 @@
 /*
- * Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2023 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.ui.viewmodel
 
-import android.view.SurfaceView
+import android.view.SurfaceHolder
 import androidx.lifecycle.ViewModel
-import com.phenixrts.suite.channelpublisher.BuildConfig
-import com.phenixrts.suite.phenixcore.PhenixCore
-import com.phenixrts.suite.phenixcore.common.launch
-import com.phenixrts.suite.phenixcore.repositories.models.PhenixChannelConfiguration
-import com.phenixrts.suite.phenixcore.repositories.models.PhenixEvent
-import com.phenixrts.suite.phenixcore.repositories.models.PhenixMediaState
-import com.phenixrts.suite.phenixcore.repositories.models.PhenixPublishConfiguration
-import com.phenixrts.suite.phenixdebugmenu.DebugMenu
-import com.phenixrts.suite.phenixdebugmenu.models.DebugEvent
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import com.phenixrts.pcast.FacingMode
+import com.phenixrts.suite.channelpublisher.common.PublishConfiguration
+import com.phenixrts.suite.channelpublisher.repositories.ChannelExpressRepository
+import com.phenixrts.suite.phenixcommon.common.launchMain
 import timber.log.Timber
 
-class ChannelViewModel(private val phenixCore: PhenixCore) : ViewModel() {
+class ChannelViewModel(private val channelExpressRepository: ChannelExpressRepository) : ViewModel() {
 
-    private val _onEvent = MutableSharedFlow<PhenixEvent>(replay = 1)
-    private val _mediaState = MutableSharedFlow<PhenixMediaState>(replay = 1)
+    var channelAlias: String = ""
+    val onChannelExpressError = channelExpressRepository.onError
+    val onChannelState = channelExpressRepository.onChannelState
 
-    val onError = phenixCore.onError
-    val onEvent = _onEvent.asSharedFlow()
-    val mediaState = _mediaState.asSharedFlow()
-
-    init {
-        launch {
-            phenixCore.onEvent.collect { event ->
-                _onEvent.tryEmit(event)
-            }
-        }
-
-        launch {
-            phenixCore.mediaState.collect { state ->
-                Timber.d("Media state updated: $state")
-                _mediaState.tryEmit(state)
-            }
-        }
-    }
-
-    fun showPublisherPreview(surfaceView: SurfaceView) {
+    fun showPublisherPreview(surfaceHolder: SurfaceHolder) {
         Timber.d("Showing preview")
-        phenixCore.setSelfVideoEnabled(true)
-        phenixCore.previewOnSurface(surfaceView)
+        channelExpressRepository.showPublisherPreview()
+        setSelfVideoEnabled(true)
+        channelExpressRepository.updateSurfaceHolder(surfaceHolder)
     }
 
-    fun publishToChannel(configuration: PhenixPublishConfiguration) {
+    fun setSelfVideoEnabled(enabled: Boolean) {
+        channelExpressRepository.setSelfVideoEnabled(enabled)
+    }
+
+    fun updatePublisherPreview(publishConfiguration: PublishConfiguration) = launchMain {
+        channelExpressRepository.updatePublisherPreview(publishConfiguration)
+    }
+
+    fun publishToChannel(configuration: PublishConfiguration) = launchMain {
         Timber.d("Publishing to channel: $configuration")
-        val channelAlias = phenixCore.configuration!!.selectedAlias?.takeIf { it.isNotBlank() }
-            ?: phenixCore.configuration!!.channelAliases.first()
-        val streamToken = phenixCore.configuration!!.channelStreamTokens.firstOrNull()
-        val publishToken = phenixCore.configuration!!.publishToken
-        phenixCore.publishToChannel(
-            configuration = PhenixChannelConfiguration(
-                channelAlias = channelAlias,
-                streamToken = streamToken,
-                publishToken = publishToken
-            ),
-            publishConfiguration = configuration.copy(
-                isAudioEnabled = _mediaState.replayCache.lastOrNull()?.isAudioEnabled ?: configuration.isAudioEnabled,
-                isVideoEnabled = _mediaState.replayCache.lastOrNull()?.isVideoEnabled ?: configuration.isVideoEnabled
-            )
-        )
+        channelExpressRepository.publishToChannel(configuration)
     }
 
-    fun stopPublishing() = phenixCore.stopPublishingToChannel()
-
-    fun observeDebugMenu(debugMenu: DebugMenu, onError: (String) -> Unit, onEvent: (DebugEvent) -> Unit) {
-        debugMenu.observeDebugMenu(
-            phenixCore,
-            "${BuildConfig.APPLICATION_ID}.provider",
-            onError = onError,
-            onEvent = onEvent
-        )
-    }
+    fun stopPublishing() = channelExpressRepository.stopPublishing()
 }

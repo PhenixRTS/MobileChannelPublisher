@@ -8,13 +8,19 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.phenixrts.suite.phenixcore.common.json
-import com.phenixrts.suite.phenixcore.common.toJson
 import com.phenixrts.suite.phenixdeeplinks.cache.ConfigurationProvider
 import com.phenixrts.suite.phenixdeeplinks.models.*
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import timber.log.Timber
+
+private val json = Json {
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+    isLenient = true
+}
 
 abstract class DeepLinkActivity : AppCompatActivity() {
 
@@ -109,7 +115,7 @@ abstract class DeepLinkActivity : AppCompatActivity() {
                 }
                 if (isAlreadyInitialized()) {
                     Timber.d("Configuration already loaded")
-                    configurationProvider.saveConfiguration(configuration.toJson())
+                    configurationProvider.saveConfiguration(json.encodeToString(configuration))
                     status = DeepLinkStatus.RELOAD
                     onDeepLinkQueried(status, configuration.asConfigurationModel(), configuration, path)
                     return

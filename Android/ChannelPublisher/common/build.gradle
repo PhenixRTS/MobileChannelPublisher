@@ -3,9 +3,10 @@
  */
 
 plugins {
-    id 'com.android.application'
+    id 'com.android.library'
     id 'kotlin-android'
     id 'kotlin-kapt'
+    id 'kotlinx-serialization'
 }
 
 android {
@@ -13,12 +14,8 @@ android {
     buildToolsVersion '33.0.0'
 
     defaultConfig {
-        applicationId "com.phenixrts.suite.channelpublisher"
         minSdkVersion 23
         targetSdk 33
-        versionCode 1
-        versionName "2022.0"
-        archivesBaseName = "PhenixChannelPublisher"
     }
 
     buildTypes {
@@ -40,50 +37,33 @@ android {
 
     kotlinOptions {
         jvmTarget = "1.8"
-        freeCompilerArgs += [
-                "-Xuse-experimental=kotlinx.coroutines.ExperimentalCoroutinesApi",
-                "-Xuse-experimental=kotlinx.coroutines.ObsoleteCoroutinesApi",
-                "-Xuse-experimental=kotlinx.coroutines.FlowPreview"]
     }
 
-    splits {
-        abi {
-            enable true
-            reset()
-            include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
-            universalApk true
-        }
-    }
-
-    namespace 'com.phenixrts.suite.channelpublisher'
+    namespace 'com.phenixrts.suite.phenixcommon'
 }
 
 dependencies {
-    implementation project(":common")
-    implementation project(":phenixdeeplink")
-    implementation project(":phenixdebugmenu")
-
     // Kotlin
     api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
     api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
     api 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0'
 
     // Android
-    api 'androidx.appcompat:appcompat:1.5.1'
     api 'androidx.core:core-ktx:1.9.0'
     api 'androidx.constraintlayout:constraintlayout:2.1.4'
-    api "androidx.lifecycle:lifecycle-extensions:2.2.0"
-    api 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
-    api 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
-
-    // Material
-    api 'com.google.android.material:material:1.6.1'
+    api 'androidx.appcompat:appcompat:1.5.1'
 
     // Dagger
     kapt 'com.google.dagger:dagger-compiler:2.44'
     kapt 'com.google.dagger:dagger-android-processor:2.44'
     api 'com.google.dagger:dagger-android-support:2.44'
 
+    // Material
+    api 'com.google.android.material:material:1.6.1'
+
     // Timber
     api 'com.jakewharton.timber:timber:5.0.1'
+
+    // Phenix
+    api 'com.phenixrts.android:phenix-sdk-android:2022.0.3'
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2023 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.phenixdebugmenu
@@ -14,9 +14,9 @@ import android.view.View
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.phenixrts.suite.phenixcore.PhenixCore
-import com.phenixrts.suite.phenixcore.common.FileWriterDebugTree
-import com.phenixrts.suite.phenixcore.common.launchMain
+import com.phenixrts.sdk.BuildConfig
+import com.phenixrts.suite.phenixcommon.common.FileWriterDebugTree
+import com.phenixrts.suite.phenixcommon.common.launchMain
 import com.phenixrts.suite.phenixdebugmenu.common.hide
 import com.phenixrts.suite.phenixdebugmenu.common.isOpened
 import com.phenixrts.suite.phenixdebugmenu.common.open
@@ -56,17 +56,17 @@ class DebugMenu: CoordinatorLayout {
     }
 
     fun observeDebugMenu(
-        phenixCore: PhenixCore,
+        debugTree: FileWriterDebugTree,
         authority: String,
         onEvent: (DebugEvent) -> Unit,
         onError: (String) -> Unit
     ) {
-        fileWriterDebugTree = phenixCore.debugTree
+        fileWriterDebugTree = debugTree
         providerAuthority = authority
         sdkVersion = context.getString(
             R.string.debug_sdk_version,
-            phenixCore.sdkVersion,
-            phenixCore.sdkCode
+            BuildConfig.PHENIX_SDK_VERSION,
+            BuildConfig.PHENIX_SDK_BUILD
         )
         this.onEvent = onEvent
         this.onError = onError

@@ -1,8 +1,8 @@
 /*
- * Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2023 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 rootProject.name='Channel Publisher'
 include ':app'
-include ':phenixcore'
+include ':common'
 include ':phenixdebugmenu'
 include ':phenixdeeplink'

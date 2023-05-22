@@ -1,36 +1,39 @@
 /*
- * Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2023 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.ui
 
 import android.os.Bundle
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
+import com.phenixrts.pcast.FacingMode
 import com.phenixrts.suite.channelpublisher.BuildConfig
 import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
 import com.phenixrts.suite.channelpublisher.R
 import com.phenixrts.suite.channelpublisher.common.*
+import com.phenixrts.suite.channelpublisher.common.enums.ExpressError
+import com.phenixrts.suite.channelpublisher.common.enums.StreamStatus
 import com.phenixrts.suite.channelpublisher.databinding.ActivityMainBinding
+import com.phenixrts.suite.channelpublisher.repositories.ChannelExpressRepository
 import com.phenixrts.suite.channelpublisher.ui.viewmodel.ChannelViewModel
-import com.phenixrts.suite.phenixcore.common.launchUI
-import com.phenixrts.suite.phenixcore.PhenixCore
-import com.phenixrts.suite.phenixcore.repositories.models.PhenixEvent
-import com.phenixrts.suite.phenixcore.repositories.models.PhenixPublishConfiguration
+import com.phenixrts.suite.phenixcommon.common.FileWriterDebugTree
+import com.phenixrts.suite.phenixcommon.common.launchMain
 import com.phenixrts.suite.phenixdebugmenu.models.DebugEvent
 import timber.log.Timber
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
 
-    @Inject lateinit var phenixCore: PhenixCore
-
+    @Inject lateinit var channelExpressRepository: ChannelExpressRepository
+    @Inject lateinit var fileWriterTree: FileWriterDebugTree
     private lateinit var binding: ActivityMainBinding
 
     private val viewModel: ChannelViewModel by lazyViewModel(
         { application as ChannelPublisherApplication },
-        { ChannelViewModel(phenixCore) }
+        { ChannelViewModel(channelExpressRepository) }
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,28 +43,35 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         initializeDropDowns()
 
-        launchUI {
-            viewModel.onError.collect { error ->
-                Timber.d("Channel Publisher failed: $error")
+        launchMain {
+            viewModel.onChannelExpressError.collect { error ->
+                Timber.d("Channel Express failed: $error")
+                showErrorDialog(error)
+            }
+        }
+
+        launchMain {
+            viewModel.onChannelState.collect { status ->
+                Timber.d("Stream state changed: $status")
                 hideLoading()
-                binding.root.showSnackBar(error.message, Snackbar.LENGTH_LONG)
-            }
-        }
-        launchUI {
-            viewModel.onEvent.collect { event ->
-                updateState(event)
-            }
-        }
-        launchUI {
-            viewModel.mediaState.collect { state ->
-                switchPreview(state.isVideoEnabled)
+
+                if (status == StreamStatus.CONNECTED) {
+                    hideConfigurationOverlay()
+                } else {
+                    showConfigurationOverlay()
+                }
+
+                if (status == StreamStatus.FAILED) {
+                    Timber.d("Stream failed")
+                    showErrorDialog(ExpressError.STREAM_ERROR)
+                }
             }
         }
 
         binding.configuration.publishButton.setOnClickListener {
             Timber.d("Publish button clicked")
             showLoading()
-            viewModel.publishToChannel(configuration = getPublishConfiguration())
+            viewModel.publishToChannel(getPublishConfiguration())
         }
 
         binding.endStreamButton.setOnClickListener {
@@ -69,8 +79,12 @@ class MainActivity : AppCompatActivity() {
             viewModel.stopPublishing()
         }
 
-        viewModel.observeDebugMenu(
-            binding.debugMenu,
+        viewModel.showPublisherPreview(binding.channelSurface.holder)
+
+        binding.debugMenu.onStart(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE.toString())
+        binding.debugMenu.observeDebugMenu(
+            fileWriterTree,
+            "${BuildConfig.APPLICATION_ID}.provider",
             onError = { error ->
                 binding.root.showSnackBar(error, Snackbar.LENGTH_LONG)
             },
@@ -81,25 +95,21 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         )
-        binding.debugMenu.onStart(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE.toString())
 
-        viewModel.showPublisherPreview(binding.channelSurface)
-        viewModel.onEvent.replayCache.lastOrNull()?.let { event ->
-            updateState(event)
-        }
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.debugMenu.isOpened()) {
+                    binding.debugMenu.hide()
+                } else {
+                    finish()
+                }
+            }
+        })
     }
 
     override fun onDestroy() {
         super.onDestroy()
         binding.debugMenu.onStop()
-    }
-
-    override fun onBackPressed() {
-        if (binding.debugMenu.isOpened()) {
-            binding.debugMenu.hide()
-        } else {
-            super.onBackPressed()
-        }
     }
 
     private fun initializeDropDowns() {
@@ -113,13 +123,16 @@ class MainActivity : AppCompatActivity() {
             Timber.d("Camera facing selected: $index")
             if (selectedCameraFacing != index) {
                 selectedCameraFacing = index
-                if (index == CAMERA_OFF_INDEX) {
-                    Timber.d("Disabling camera: $index")
-                    phenixCore.setSelfVideoEnabled(false)
+
+                val publishConfiguration = getPublishConfiguration()
+                viewModel.updatePublisherPreview(publishConfiguration)
+
+                if (publishConfiguration.cameraFacingMode == FacingMode.UNDEFINED) {
+                    binding.channelSurface.visibility = View.GONE
+                    viewModel.setSelfVideoEnabled(false)
                 } else {
-                    Timber.d("Flipping camera: $index")
-                    phenixCore.setSelfVideoEnabled(true)
-                    phenixCore.setCameraFacing(getCameraFacing())
+                    viewModel.setSelfVideoEnabled(true)
+                    binding.channelSurface.visibility = View.VISIBLE
                 }
             }
         }
@@ -140,23 +153,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateState(event: PhenixEvent) {
-        Timber.d("Channel Publisher event: $event")
-        when (event) {
-            PhenixEvent.PHENIX_CHANNEL_PUBLISHING -> showLoading()
-            PhenixEvent.PHENIX_CHANNEL_PUBLISHED -> {
-                hideLoading()
-                hideConfigurationOverlay()
-            }
-            PhenixEvent.PHENIX_CHANNEL_PUBLISH_ENDED -> showConfigurationOverlay()
-            else -> { /* Ignored */ }
-        }
-    }
-
-    private fun switchPreview(enabled: Boolean) {
-        binding.channelSurface.visibility = if (enabled) View.VISIBLE else View.GONE
-    }
-
     private fun showLoading() {
         binding.loadingProgressBar.visibility = View.VISIBLE
     }
@@ -175,12 +171,12 @@ class MainActivity : AppCompatActivity() {
         binding.endStreamButton.visibility = View.VISIBLE
     }
 
-    private fun getPublishConfiguration() = PhenixPublishConfiguration(
-        cameraFacingMode = getCameraFacing(),
-        cameraFps = getCameraFps().toDouble(),
-        isAudioEnabled = getMicrophoneEnabled(),
-        isVideoEnabled = selectedCameraFacing != CAMERA_OFF_INDEX,
-        echoCancellationMode = getEchoCancellation()
-    )
+    private fun getPublishConfiguration(): PublishConfiguration {
+        val cameraFacing = getCameraFacing()
+        val cameraFps = getCameraFps()
+        val echoCancellationMode = getEchoCancellation()
+        val microphoneEnabled = getMicrophoneEnabled()
+        return PublishConfiguration(viewModel.channelAlias, cameraFacing, cameraFps, microphoneEnabled, echoCancellationMode)
+    }
 
 }

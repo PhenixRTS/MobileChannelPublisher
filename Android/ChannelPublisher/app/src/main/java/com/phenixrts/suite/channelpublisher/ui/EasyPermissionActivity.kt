@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2023 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.ui
@@ -8,28 +8,19 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Build
-import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
-import com.phenixrts.suite.phenixcore.PhenixCore
 import com.phenixrts.suite.phenixdeeplinks.DeepLinkActivity
+import com.phenixrts.suite.phenixdeeplinks.models.DeepLinkStatus
+import com.phenixrts.suite.phenixdeeplinks.models.PhenixDeepLinkConfiguration
 import java.util.*
-import javax.inject.Inject
+import kotlin.collections.HashMap
 
 @SuppressLint("Registered")
 abstract class EasyPermissionActivity : DeepLinkActivity() {
 
-    @Inject lateinit var phenixCore: PhenixCore
-
     private val permissionRequestHistory = hashMapOf<Int, (a: Boolean) -> Unit>()
 
-    override val additionalConfiguration = hashMapOf(Pair("publishingEnabled", "true"))
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        ChannelPublisherApplication.component.inject(this)
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -74,4 +65,6 @@ abstract class EasyPermissionActivity : DeepLinkActivity() {
     private fun hasBluetoothPermission(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
         ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PERMISSION_GRANTED else true
 
+    override val additionalConfiguration: HashMap<String, String>
+        get() = HashMap()
 }
