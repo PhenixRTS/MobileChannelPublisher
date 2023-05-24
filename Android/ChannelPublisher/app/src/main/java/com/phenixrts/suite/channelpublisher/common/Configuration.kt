@@ -15,7 +15,7 @@ import timber.log.Timber
 private val CAMERA_OPTIONS = listOf(FacingMode.USER, FacingMode.ENVIRONMENT, FacingMode.UNDEFINED)
 private val MICROPHONE_OPTIONS = listOf(true, false)
 private val FPS_OPTIONS = listOf(15, 30)
-private val AEC_OPTIONS = listOf(AudioEchoCancelationMode.AUTOMATIC, AudioEchoCancelationMode.ON, AudioEchoCancelationMode.OFF)
+private val AEC_OPTIONS = listOf(AudioEchoCancellationMode.AUTOMATIC, AudioEchoCancellationMode.ON, AudioEchoCancellationMode.OFF)
 
 var selectedCameraFacing = 0
 var selectedMicrophoneOption = 0
@@ -23,30 +23,19 @@ var selectedFpsOption = 0
 var selectedAecOption = 1
 
 data class PublishConfiguration(
-    val channelAlias: String,
     val cameraFacingMode: FacingMode,
     val cameraFps: Int,
     val microphoneEnabled: Boolean,
-    val echoCancellationMode: AudioEchoCancelationMode
+    val echoCancellationMode: AudioEchoCancellationMode
 )
 
-fun getPublishToChannelOptions(publishConfig: PublishConfiguration, configuration: PhenixDeepLinkConfiguration,
+fun getPublishToChannelOptions(configuration: PhenixDeepLinkConfiguration,
                                userMediaStream: UserMediaStream): PublishToChannelOptions {
-    val channelOptions = RoomServiceFactory.createChannelOptionsBuilder()
-        .withName(publishConfig.channelAlias)
-        .withAlias(publishConfig.channelAlias)
-        .buildChannelOptions()
-
     var publishOptionsBuilder = PCastExpressFactory.createPublishOptionsBuilder()
         .withUserMedia(userMediaStream)
-
-    if (!configuration.publishToken.isNullOrBlank()) {
-        Timber.d("Publishing with publish token: ${configuration.publishToken}")
-        publishOptionsBuilder.withStreamToken(configuration.publishToken).withSkipRetryOnUnauthorized()
-    }
+        .withStreamToken(configuration.publishToken)
 
     return ChannelExpressFactory.createPublishToChannelOptionsBuilder()
-        .withChannelOptions(channelOptions)
         .withPublishOptions(publishOptionsBuilder.buildPublishOptions())
         .buildPublishToChannelOptions()
 }
@@ -64,7 +53,7 @@ fun getUserMediaOptions(configuration: PublishConfiguration): UserMediaOptions =
 
     if (configuration.microphoneEnabled) {
         audioOptions.enabled = true
-        audioOptions.capabilityConstraints[DeviceCapability.AUDIO_ECHO_CANCELATION_MODE] = listOf(DeviceConstraint(configuration.echoCancellationMode))
+        audioOptions.capabilityConstraints[DeviceCapability.AUDIO_ECHO_CANCELLATION_MODE] = listOf(DeviceConstraint(configuration.echoCancellationMode))
     } else {
         audioOptions.enabled = false
     }
@@ -76,8 +65,8 @@ fun getDefaultUserMediaOptions(): UserMediaOptions = UserMediaOptions().apply {
     videoOptions.capabilityConstraints[DeviceCapability.HEIGHT] = listOf(DeviceConstraint(360.0))
     videoOptions.capabilityConstraints[DeviceCapability.FRAME_RATE] = listOf(DeviceConstraint(15.0))
     audioOptions.enabled = true
-    audioOptions.capabilityConstraints[DeviceCapability.AUDIO_ECHO_CANCELATION_MODE] =
-        listOf(DeviceConstraint(AudioEchoCancelationMode.ON))
+    audioOptions.capabilityConstraints[DeviceCapability.AUDIO_ECHO_CANCELLATION_MODE] =
+        listOf(DeviceConstraint(AudioEchoCancellationMode.ON))
 }
 
 fun getCameraFacing(): FacingMode = CAMERA_OPTIONS[selectedCameraFacing]
@@ -86,4 +75,4 @@ fun getMicrophoneEnabled(): Boolean = MICROPHONE_OPTIONS[selectedMicrophoneOptio
 
 fun getCameraFps(): Int = FPS_OPTIONS[selectedFpsOption]
 
-fun getEchoCancellation(): AudioEchoCancelationMode = AEC_OPTIONS[selectedAecOption]
+fun getEchoCancellation(): AudioEchoCancellationMode = AEC_OPTIONS[selectedAecOption]

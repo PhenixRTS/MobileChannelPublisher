@@ -176,7 +176,7 @@ class MainActivity : AppCompatActivity() {
         val cameraFps = getCameraFps()
         val echoCancellationMode = getEchoCancellation()
         val microphoneEnabled = getMicrophoneEnabled()
-        return PublishConfiguration(viewModel.channelAlias, cameraFacing, cameraFps, microphoneEnabled, echoCancellationMode)
+        return PublishConfiguration(cameraFacing, cameraFps, microphoneEnabled, echoCancellationMode)
     }
 
 }

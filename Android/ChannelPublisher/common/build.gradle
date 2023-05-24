@@ -65,5 +65,5 @@ dependencies {
     api 'com.jakewharton.timber:timber:5.0.1'
 
     // Phenix
-    api 'com.phenixrts.android:phenix-sdk-android:2022.0.3'
+    api 'com.phenixrts.android:phenix-sdk-android-beta:2023.0.0-df80922-20230822T073055-beta.16'
 }

@@ -14,7 +14,6 @@ import timber.log.Timber
 
 class ChannelViewModel(private val channelExpressRepository: ChannelExpressRepository) : ViewModel() {
 
-    var channelAlias: String = ""
     val onChannelExpressError = channelExpressRepository.onError
     val onChannelState = channelExpressRepository.onChannelState
 

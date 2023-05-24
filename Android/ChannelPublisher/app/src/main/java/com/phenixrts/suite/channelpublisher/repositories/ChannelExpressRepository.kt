@@ -110,7 +110,7 @@ class ChannelExpressRepository(private val context: Application) {
         }
 
         channelExpress?.publishToChannel(
-            getPublishToChannelOptions(configuration, expressConfiguration!!, userMediaStream!!))?.let { status ->
+            getPublishToChannelOptions(expressConfiguration!!, userMediaStream!!))?.let { status ->
             Timber.d("Stream is published with status [$status]")
             expressPublisher = status.publisher
             roomService = status.roomService
@@ -160,12 +160,11 @@ class ChannelExpressRepository(private val context: Application) {
 
         Timber.d("Creating Channel Express: $expressConfiguration")
         AndroidContext.setContext(context)
-        val pCastExpress = PCastExpressFactory.createPCastExpressOptionsBuilder()
+        val pCastExpress = PCastExpressFactory.createPCastExpressOptionsBuilder { status: RequestStatus?, description: String ->
+            Timber.e("Unrecoverable error in PhenixSDK. Error status [$status]. Error description [$description]")
+            _onError.tryEmit(ExpressError.UNRECOVERABLE_ERROR)
+        }
             .withMinimumConsoleLogLevel("debug")
-            .withUnrecoverableErrorCallback { status: RequestStatus?, description: String ->
-                Timber.e("Unrecoverable error in PhenixSDK. Error status: [$status]. Description: [$description]")
-                _onError.tryEmit(ExpressError.UNRECOVERABLE_ERROR)
-            }
             .withAuthenticationToken(expressConfiguration!!.authToken)
             .buildPCastExpressOptions()
         val roomExpressOptions = RoomExpressFactory.createRoomExpressOptionsBuilder()

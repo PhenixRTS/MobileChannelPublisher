@@ -87,16 +87,17 @@ class SplashActivity : EasyPermissionActivity() {
     }
 
     private fun showLandingScreen(configuration: PhenixDeepLinkConfiguration) = launchMain {
-        if (configuration.selectedAlias.isEmpty()) {
+        if (configuration.publishToken.isEmpty() || configuration.authToken.isEmpty()) {
             showErrorDialog(ExpressError.DEEP_LINK_ERROR)
             return@launchMain
         }
+
         Timber.d("Waiting for PCast")
-        viewModel.channelAlias = configuration.selectedAlias
         timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT_DELAY)
         channelExpress.setupChannelExpress(configuration)
         channelExpress.waitForPCast()
         timeoutHandler.removeCallbacks(timeoutRunnable)
+
         Timber.d("Navigating to Landing Screen")
         startActivity(Intent(this@SplashActivity, MainActivity::class.java))
         finish()
