@@ -52,19 +52,16 @@ Here is an example of custom deep link model for URL like  `https://{host}?token
 import PhenixDeeplink
 
 struct ExampleDeeplinkModel: PhenixDeeplinkModelProvider {
-    let alias: String?
-    let uri: URL?
-    let backend: URL?
+    let authToken: String?
+    let publishToken: URL?
 
     init?(components: URLComponents) {
-        self.alias = components.fragment
-
-        if let string = components.queryItems?.first(where: { $0.name == "uri" })?.value {
-            self.uri = URL(string: string)
+        if let authToken = components.queryItems?.first(where: { $0.name == "authToken" })?.value {
+            self.authToken = authToken
         }
 
-        if let string = components.queryItems?.first(where: { $0.name == "backend" })?.value {
-            self.backend = URL(string: string)
+        if let publishToken = components.queryItems?.first(where: { $0.name == "publishToken" })?.value {
+            self.publishToken = publishToken
         }
     }
 }

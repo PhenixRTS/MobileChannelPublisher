@@ -38,10 +38,8 @@ class ViewController: UIViewController {
         // Validate configuration
         do {
             try ValidationProvider.validate(
-                backend: PhenixConfiguration.backendUri,
                 authToken: PhenixConfiguration.authToken,
-                publishToken: PhenixConfiguration.publishToken,
-                channelAlias: PhenixConfiguration.channelAlias
+                publishToken: PhenixConfiguration.publishToken
             )
         } catch {
             DispatchQueue.main.async {
@@ -162,9 +160,7 @@ class ViewController: UIViewController {
             fatalError("Fatal error. User stream must be provided.")
         }
 
-        channelPublisher.publish(
-            channelAlias: PhenixConfiguration.channelAlias,
-            userMediaStream: userMediaStream)
+        channelPublisher.publish(userMediaStream: userMediaStream)
     }
 
     private func stopPublishing() {

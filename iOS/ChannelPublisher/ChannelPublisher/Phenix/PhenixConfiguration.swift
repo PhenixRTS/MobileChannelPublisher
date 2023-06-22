@@ -6,37 +6,23 @@ import PhenixSdk
 import UIKit
 
 public enum PhenixConfiguration {
-    public static var pcastUri: URL?
-    public static var backendUri: URL? = URL(string: "https://demo.phenixrts.com/pcast")
     public static var authToken: String?
     public static var publishToken: String?
-    public static var channelAlias: String?
 
     public static func makeChannelExpress() -> PhenixChannelExpress {
-        precondition((backendUri != nil) != (authToken != nil), "You must provide the AuthToken or the backend url. At least one must be provided but not both simultaneously.")
+        guard let authToken = authToken else { fatalError("You must provide the AuthToken.") }
 
-        var pcastExpressOptionsBuilder = PhenixPCastExpressFactory.createPCastExpressOptionsBuilder()
-
-        if let authToken = authToken {
-            pcastExpressOptionsBuilder = pcastExpressOptionsBuilder?.withAuthenticationToken(authToken)
-        } else if let backendUri = backendUri {
-            pcastExpressOptionsBuilder = pcastExpressOptionsBuilder?.withBackendUri(backendUri.absoluteString)
-        }
-
-        if let pcastUri = pcastUri {
-            pcastExpressOptionsBuilder = pcastExpressOptionsBuilder?.withPCastUri(pcastUri.absoluteString)
-        }
-
-        let pcastExpressOptions = pcastExpressOptionsBuilder?
-            .withMinimumConsoleLogLevel("Info")
-            .withUnrecoverableErrorCallback { status, description in
+        let pcastExpressOptions = PhenixPCastExpressFactory.createPCastExpressOptionsBuilder(
+            unrecoverableErrorCallback: { status, description in
                 DispatchQueue.main.async {
                     AppDelegate.terminate(
                         afterDisplayingAlertWithTitle: "Something went wrong!",
                         message: "Application entered in unrecoverable state and will be terminated."
                     )
                 }
-            }
+            })
+            .withMinimumConsoleLogLevel("Info")
+            .withAuthenticationToken(authToken)
             .buildPCastExpressOptions()
 
         let roomExpressOptions = PhenixRoomExpressFactory.createRoomExpressOptionsBuilder()
@@ -50,37 +36,19 @@ public enum PhenixConfiguration {
         return PhenixChannelExpressFactory.createChannelExpress(channelExpressOptions)
     }
 
-    public static func makePublishChannelOptions(channelAlias: String?, userMediaStream: PhenixUserMediaStream) -> PhenixPublishToChannelOptions! {
-
-        var channelOptions: PhenixChannelOptions? = nil
-
-        if let channelAlias = channelAlias {
-            channelOptions = PhenixRoomServiceFactory.createChannelOptionsBuilder()
-                .withName(channelAlias)
-                .withAlias(channelAlias)
-                .buildChannelOptions()
-        }
-
-        var publishOptionsBuilder = PhenixPCastExpressFactory.createPublishOptionsBuilder()
+    public static func makePublishChannelOptions(userMediaStream: PhenixUserMediaStream) -> PhenixPublishToChannelOptions! {
+        var publishOptionsBuilder = PhenixPCastExpressFactory.createPublishOptionsBuilder()!
 
         if let publishToken = publishToken {
-            publishOptionsBuilder = publishOptionsBuilder?
+            publishOptionsBuilder = publishOptionsBuilder
                 .withStreamToken(publishToken)
-                .withSkipRetryOnUnauthorized()
         }
 
-        let publishOptions = publishOptionsBuilder?
+        let publishOptions = publishOptionsBuilder
             .withUserMedia(userMediaStream)
             .buildPublishOptions()
 
-        var publishToRoomOptionsBuilder = PhenixChannelExpressFactory.createPublishToChannelOptionsBuilder()!
-
-        if let channelOptions = channelOptions {
-            publishToRoomOptionsBuilder = publishToRoomOptionsBuilder
-                .withChannelOptions(channelOptions)
-        }
-
-        let publishToRoomOptions = publishToRoomOptionsBuilder
+        let publishToRoomOptions = PhenixChannelExpressFactory.createPublishToChannelOptionsBuilder()!
             .withPublishOptions(publishOptions)
             .buildPublishToChannelOptions()
 

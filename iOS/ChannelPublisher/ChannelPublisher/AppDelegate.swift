@@ -38,29 +38,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Setup deeplink
         if let deeplink = PhenixDeeplinkService<PhenixDeeplinkModel>.makeDeeplink(launchOptions) {
-            if deeplink.authToken != nil || deeplink.publishToken != nil {
-                // Clear the default backend uri.
-                PhenixConfiguration.backendUri = nil
-            }
-
             if let authToken = deeplink.authToken {
                 PhenixConfiguration.authToken = authToken
             }
 
             if let publishToken = deeplink.publishToken {
                 PhenixConfiguration.publishToken = publishToken
-            }
-
-            if let backend = deeplink.backend {
-                PhenixConfiguration.backendUri = backend
-            }
-
-            if let pcastUri = deeplink.uri {
-                PhenixConfiguration.pcastUri = pcastUri
-            }
-
-            if let alias = deeplink.alias {
-                PhenixConfiguration.channelAlias = alias
             }
         }
 
@@ -87,21 +70,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
         if let publishToken = deeplink.publishToken, publishToken != PhenixConfiguration.publishToken {
-            terminate()
-            return false
-        }
-
-        if let backend = deeplink.backend, backend != PhenixConfiguration.backendUri {
-            terminate()
-            return false
-        }
-
-        if let uri = deeplink.uri, uri != PhenixConfiguration.pcastUri {
-            terminate()
-            return false
-        }
-
-        if let alias = deeplink.alias, alias != PhenixConfiguration.channelAlias {
             terminate()
             return false
         }

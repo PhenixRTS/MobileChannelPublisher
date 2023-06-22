@@ -14,9 +14,8 @@ public final class PhenixChannelPublisher {
         self.channelExpress = channelExpress
     }
 
-    public func publish(channelAlias: String?, userMediaStream: PhenixUserMediaStream) {
+    public func publish(userMediaStream: PhenixUserMediaStream) {
         let options = PhenixConfiguration.makePublishChannelOptions(
-            channelAlias: channelAlias,
             userMediaStream: userMediaStream
         )
 
