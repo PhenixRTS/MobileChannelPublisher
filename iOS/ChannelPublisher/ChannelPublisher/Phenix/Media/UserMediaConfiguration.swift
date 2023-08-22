@@ -9,7 +9,7 @@ public struct UserMediaConfiguration {
     public var frameRate: PublishOption.FrameRate?
     public var frameHeight: Double = 360
     public var microphone: PublishOption.Microphone
-    public var audioEchoCancelation: PublishOption.AudioEchoCancellation
+    public var audioEchoCancellation: PublishOption.AudioEchoCancellation
 
     public func makeOptions() -> PhenixUserMediaOptions {
         let options = PhenixUserMediaOptions()
@@ -23,12 +23,12 @@ public struct UserMediaConfiguration {
         }
 
         options.audio.enabled = microphone.value
-        options.audio.capabilityConstraints[PhenixDeviceCapability.audioEchoCancelationMode.rawValue] = [PhenixDeviceConstraint.initWith(audioEchoCancelation.value)]
+        options.audio.capabilityConstraints[PhenixDeviceCapability.audioEchoCancellationMode.rawValue] = [PhenixDeviceConstraint.initWith(audioEchoCancellation.value)]
 
         return options
     }
 }
 
 extension UserMediaConfiguration {
-    public static let `default` = UserMediaConfiguration(camera: .front, frameRate: .fps15, microphone: .on, audioEchoCancelation: .on)
+    public static let `default` = UserMediaConfiguration(camera: .front, frameRate: .fps15, microphone: .on, audioEchoCancellation: .on)
 }

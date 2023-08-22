@@ -66,7 +66,7 @@ public enum PublishOption {
             }
         }
 
-        public var value: PhenixAudioEchoCancelationMode {
+        public var value: PhenixAudioEchoCancellationMode {
             switch self {
             case .automatic: return .automatic
             case .on:        return .on

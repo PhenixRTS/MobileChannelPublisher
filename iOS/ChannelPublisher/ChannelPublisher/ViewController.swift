@@ -60,7 +60,7 @@ class ViewController: UIViewController {
         cameraButton.setTitle(userMediaConfiguration.camera.description, for: .normal)
         frameRateButton.setTitle(userMediaConfiguration.frameRate?.description, for: .normal)
         microphoneButton.setTitle(userMediaConfiguration.microphone.description, for: .normal)
-        audioEchoCancellationButton.setTitle(userMediaConfiguration.audioEchoCancelation.description, for: .normal)
+        audioEchoCancellationButton.setTitle(userMediaConfiguration.audioEchoCancellation.description, for: .normal)
 
         startBroadcastButton.isEnabled = false
         broadcastConfigurationButtons.forEach { $0.isEnabled = false }
@@ -218,7 +218,7 @@ class ViewController: UIViewController {
     }
 
     private func updateAudioEchoCancellation(_ selectedValue: PublishOption.AudioEchoCancellation) {
-        userMediaConfiguration.audioEchoCancelation = selectedValue
+        userMediaConfiguration.audioEchoCancellation = selectedValue
 
         do {
             try userMediaStreamController?.update(configuration: userMediaConfiguration)
