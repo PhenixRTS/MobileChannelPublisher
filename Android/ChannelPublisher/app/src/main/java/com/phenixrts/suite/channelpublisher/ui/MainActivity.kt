@@ -81,7 +81,6 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.showPublisherPreview(binding.channelSurface.holder)
 
-        binding.debugMenu.onStart(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE.toString())
         binding.debugMenu.observeDebugMenu(
             fileWriterTree,
             "${BuildConfig.APPLICATION_ID}.provider",
@@ -95,6 +94,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         )
+        binding.debugMenu.onStart(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE.toString())
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
