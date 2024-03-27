@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+//  Copyright 2024 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
 //
 
 import PhenixSdk
@@ -30,5 +30,5 @@ public struct UserMediaConfiguration {
 }
 
 extension UserMediaConfiguration {
-    public static let `default` = UserMediaConfiguration(camera: .front, frameRate: .fps15, microphone: .on, audioEchoCancellation: .on)
+    public static let `default` = UserMediaConfiguration(camera: .front, frameRate: .fps30, microphone: .on, audioEchoCancellation: .on)
 }
