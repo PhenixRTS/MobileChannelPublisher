@@ -19,7 +19,7 @@ private val AEC_OPTIONS = listOf(AudioEchoCancellationMode.AUTOMATIC, AudioEchoC
 
 var selectedCameraFacing = 0
 var selectedMicrophoneOption = 0
-var selectedFpsOption = 0
+var selectedFpsOption = 1
 var selectedAecOption = 1
 
 data class PublishConfiguration(
@@ -63,7 +63,7 @@ fun getDefaultUserMediaOptions(): UserMediaOptions = UserMediaOptions().apply {
     videoOptions.enabled = true
     videoOptions.capabilityConstraints[DeviceCapability.FACING_MODE] = listOf(DeviceConstraint(FacingMode.USER))
     videoOptions.capabilityConstraints[DeviceCapability.HEIGHT] = listOf(DeviceConstraint(360.0))
-    videoOptions.capabilityConstraints[DeviceCapability.FRAME_RATE] = listOf(DeviceConstraint(15.0))
+    videoOptions.capabilityConstraints[DeviceCapability.FRAME_RATE] = listOf(DeviceConstraint(30.0))
     audioOptions.enabled = true
     audioOptions.capabilityConstraints[DeviceCapability.AUDIO_ECHO_CANCELLATION_MODE] =
         listOf(DeviceConstraint(AudioEchoCancellationMode.ON))
