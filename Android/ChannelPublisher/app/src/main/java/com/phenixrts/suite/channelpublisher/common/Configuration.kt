@@ -17,10 +17,15 @@ private val MICROPHONE_OPTIONS = listOf(true, false)
 private val FPS_OPTIONS = listOf(15, 30)
 private val AEC_OPTIONS = listOf(AudioEchoCancellationMode.AUTOMATIC, AudioEchoCancellationMode.ON, AudioEchoCancellationMode.OFF)
 
-var selectedCameraFacing = 0
-var selectedMicrophoneOption = 0
-var selectedFpsOption = 1
-var selectedAecOption = 1
+private val DEFAULT_CAMERA_FACING_OPTION = FacingMode.USER
+private val DEFAULT_MICROPHONE_OPTION = true
+private val DEFAULT_FPS_OPTION = 30
+private val DEFAULT_AEC_OPTION = AudioEchoCancellationMode.ON
+
+var selectedCameraFacing = CAMERA_OPTIONS.indexOf(DEFAULT_CAMERA_FACING_OPTION)
+var selectedMicrophoneOption = MICROPHONE_OPTIONS.indexOf(DEFAULT_MICROPHONE_OPTION)
+var selectedFpsOption = FPS_OPTIONS.indexOf(DEFAULT_FPS_OPTION)
+var selectedAecOption = AEC_OPTIONS.indexOf(DEFAULT_AEC_OPTION)
 
 data class PublishConfiguration(
     val cameraFacingMode: FacingMode,
@@ -61,12 +66,11 @@ fun getUserMediaOptions(configuration: PublishConfiguration): UserMediaOptions =
 
 fun getDefaultUserMediaOptions(): UserMediaOptions = UserMediaOptions().apply {
     videoOptions.enabled = true
-    videoOptions.capabilityConstraints[DeviceCapability.FACING_MODE] = listOf(DeviceConstraint(FacingMode.USER))
+    videoOptions.capabilityConstraints[DeviceCapability.FACING_MODE] = listOf(DeviceConstraint(DEFAULT_CAMERA_FACING_OPTION))
     videoOptions.capabilityConstraints[DeviceCapability.HEIGHT] = listOf(DeviceConstraint(360.0))
-    videoOptions.capabilityConstraints[DeviceCapability.FRAME_RATE] = listOf(DeviceConstraint(30.0))
-    audioOptions.enabled = true
-    audioOptions.capabilityConstraints[DeviceCapability.AUDIO_ECHO_CANCELLATION_MODE] =
-        listOf(DeviceConstraint(AudioEchoCancellationMode.ON))
+    videoOptions.capabilityConstraints[DeviceCapability.FRAME_RATE] = listOf(DeviceConstraint(DEFAULT_FPS_OPTION.toDouble()))
+    audioOptions.enabled = DEFAULT_MICROPHONE_OPTION
+    audioOptions.capabilityConstraints[DeviceCapability.AUDIO_ECHO_CANCELLATION_MODE] = listOf(DeviceConstraint(DEFAULT_AEC_OPTION))
 }
 
 fun getCameraFacing(): FacingMode = CAMERA_OPTIONS[selectedCameraFacing]
