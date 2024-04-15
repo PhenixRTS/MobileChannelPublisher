@@ -171,13 +171,17 @@ class ViewController: UIViewController {
     }
 
     private func showActionSheet<T: CustomStringConvertible>(title: String, values: [T], completion: @escaping (T, String) -> Void) {
-        let ac = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
+        let alertController = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
         for value in values {
             let action = UIAlertAction(title: value.description, style: .default) { _ in completion(value, value.description) }
-            ac.addAction(action)
+            alertController.addAction(action)
         }
-        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        present(ac, animated: true)
+        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        alertController.popoverPresentationController?.sourceView = self.view
+        alertController.popoverPresentationController?.sourceRect = CGRect(x: self.view.bounds.width / 2, y: 0, width: 1, height: 1)
+
+        present(alertController, animated: true)
     }
 
     // MARK: - Configuration handlers
