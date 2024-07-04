@@ -2,13 +2,13 @@ PODS:
   - PhenixDebug (0.1.0):
     - PhenixSdk
   - PhenixDeeplink (0.1.0)
-  - PhenixSdk (2024.0.0-2a6131b-20240118T091347838-beta.1)
+  - PhenixSdk (2024.4.0-7441191-20240906T213259024)
   - SwiftLint (0.49.1)
 
 DEPENDENCIES:
   - PhenixDebug (from `../PhenixDebug`)
   - PhenixDeeplink (from `../PhenixDeeplink`)
-  - PhenixSdk (= 2024.0.0-2a6131b-20240118T091347838-beta.1)
+  - PhenixSdk (= 2024.4.0-7441191-20240906T213259024)
   - SwiftLint (~> 0.49.1)
 
 SPEC REPOS:
@@ -26,9 +26,9 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   PhenixDebug: ac961217f03a1280353542a65623cfd6c3e9de30
   PhenixDeeplink: 3d073ed6fb7f6bb276cf86d71cd3ddb980926eba
-  PhenixSdk: 2c3da62ec38441fc53141574dd8f2c9395330b57
+  PhenixSdk: 4b8fe493ec78f547bf04900e6d7305fdb04b08ce
   SwiftLint: 32ee33ded0636d0905ef6911b2b67bbaeeedafa5
 
-PODFILE CHECKSUM: bb2f31123552f2b5293be990472a99f3ed7a0ef2
+PODFILE CHECKSUM: ff1bcb8ce505d3e47bcf9a8fb4f2ae767e03eddf
 
-COCOAPODS: 1.14.3
+COCOAPODS: 1.15.2
