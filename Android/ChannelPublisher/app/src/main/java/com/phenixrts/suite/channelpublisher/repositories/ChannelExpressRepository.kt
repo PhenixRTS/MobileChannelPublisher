@@ -1,22 +1,38 @@
 /*
- * Copyright 2023 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2024 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.repositories
 
 import android.app.Application
+import android.graphics.Point
 import android.view.SurfaceHolder
 import com.phenixrts.common.RequestStatus
 import com.phenixrts.environment.android.AndroidContext
-import com.phenixrts.express.*
+import com.phenixrts.express.ChannelExpress
+import com.phenixrts.express.ChannelExpressFactory
+import com.phenixrts.express.ExpressPublisher
+import com.phenixrts.express.PCastExpressFactory
+import com.phenixrts.express.RoomExpress
+import com.phenixrts.express.RoomExpressFactory
 import com.phenixrts.pcast.Renderer
+import com.phenixrts.pcast.UserMediaOptions
 import com.phenixrts.pcast.UserMediaStream
 import com.phenixrts.pcast.android.AndroidVideoRenderSurface
 import com.phenixrts.room.RoomService
 import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
-import com.phenixrts.suite.channelpublisher.common.*
+import com.phenixrts.suite.channelpublisher.common.PublishConfiguration
+import com.phenixrts.suite.channelpublisher.common.appendFocusTargetToMediaOptions
+import com.phenixrts.suite.channelpublisher.common.collectLogs
 import com.phenixrts.suite.channelpublisher.common.enums.ExpressError
 import com.phenixrts.suite.channelpublisher.common.enums.StreamStatus
+import com.phenixrts.suite.channelpublisher.common.getDefaultUserMediaOptions
+import com.phenixrts.suite.channelpublisher.common.getPublishToChannelOptions
+import com.phenixrts.suite.channelpublisher.common.getUserMedia
+import com.phenixrts.suite.channelpublisher.common.getUserMediaOptions
+import com.phenixrts.suite.channelpublisher.common.publishToChannel
+import com.phenixrts.suite.channelpublisher.common.resetFocusMode
+import com.phenixrts.suite.channelpublisher.common.waitForOnline
 import com.phenixrts.suite.phenixcommon.common.FileWriterDebugTree
 import com.phenixrts.suite.phenixcommon.common.launchIO
 import com.phenixrts.suite.phenixdeeplinks.models.PhenixDeepLinkConfiguration
@@ -35,18 +51,19 @@ class ChannelExpressRepository(private val context: Application) {
 
     private var channelExpress: ChannelExpress? = null
     private var userMediaStream: UserMediaStream? = null
+    private var currentUserMediaOptions: UserMediaOptions? = null
     private var userMediaRenderer: Renderer? = null
     private var expressPublisher: ExpressPublisher? = null
     private var roomService: RoomService? = null
-    private var expressConfiguration : PhenixDeepLinkConfiguration? = null
-    private val androidVideoSurface by lazy { AndroidVideoRenderSurface() }
+    private var expressConfiguration: PhenixDeepLinkConfiguration? = null
+    private var roomExpress: RoomExpress? = null
 
+    private val androidVideoSurface by lazy { AndroidVideoRenderSurface() }
     private val _onError = MutableSharedFlow<ExpressError>(replay = 1)
     private val _onChannelState = MutableSharedFlow<StreamStatus>(replay = 1)
 
     val onError: SharedFlow<ExpressError> = _onError
     val onChannelState: SharedFlow<StreamStatus> = _onChannelState
-    var roomExpress: RoomExpress? = null
 
     init {
         ChannelPublisherApplication.component.inject(this)
@@ -100,7 +117,8 @@ class ChannelExpressRepository(private val context: Application) {
         // If applying options fails, create a new user media stream.
         // This avoids creating a new media stream when changing basic options like echo cancellation mode.
         Timber.d("Applying user media stream options")
-        if (userMediaStream?.applyOptions(getUserMediaOptions(configuration)) != RequestStatus.OK) {
+        val userMediaOptions = getUserMediaOptions(configuration)
+        if (userMediaStream?.applyOptions(userMediaOptions) != RequestStatus.OK) {
             Timber.d("Cannot user media stream options, creating new user media stream")
             if (tryCreateUserMediaStream(configuration) != RequestStatus.OK) {
                 Timber.d("User media stream creation failed")
@@ -108,6 +126,8 @@ class ChannelExpressRepository(private val context: Application) {
                 return@launchIO
             }
         }
+
+        currentUserMediaOptions = userMediaOptions
 
         channelExpress?.publishToChannel(
             getPublishToChannelOptions(expressConfiguration!!, userMediaStream!!))?.let { status ->
@@ -135,6 +155,7 @@ class ChannelExpressRepository(private val context: Application) {
             userMediaRenderer = userMediaStream?.mediaStream?.createRenderer()
             userMediaRenderer?.start(androidVideoSurface)
         }
+
         if (userMediaRenderer == null) {
             _onError.tryEmit(ExpressError.UNRECOVERABLE_ERROR)
         }
@@ -146,6 +167,29 @@ class ChannelExpressRepository(private val context: Application) {
         roomService?.leaveRoom { _, status ->
             Timber.d("Room left: $status")
             _onChannelState.tryEmit(StreamStatus.DISCONNECTED)
+        }
+    }
+
+    fun setFocusTarget(targetPosition: Point): Boolean {
+        currentUserMediaOptions?.let { userMediaOptions ->
+            userMediaRenderer?.let { renderer ->
+                val convertedCoordinates =
+                    renderer.convertRenderPreviewCoordinatesToSourceCoordinates(
+                        com.phenixrts.pcast.Point(targetPosition.x, targetPosition.y)
+                    )
+
+                return@setFocusTarget userMediaStream?.applyOptions(
+                    appendFocusTargetToMediaOptions(userMediaOptions, convertedCoordinates)
+                ) == RequestStatus.OK
+            }
+        }
+
+        return false
+    }
+
+    fun resetFocus() {
+        currentUserMediaOptions?.let { userMediaOptions ->
+            userMediaStream?.applyOptions(resetFocusMode(userMediaOptions))
         }
     }
 
@@ -181,7 +225,11 @@ class ChannelExpressRepository(private val context: Application) {
             roomExpress?.pCastExpress?.pCast?.run {
                 fileWriterTree.setLogCollectionMethod(this::collectLogs)
             }
-            userMediaStream = express.pCastExpress.getUserMedia(getDefaultUserMediaOptions())
+
+            val mediaOptions = getDefaultUserMediaOptions()
+            userMediaStream = express.pCastExpress.getUserMedia(mediaOptions)
+            currentUserMediaOptions = mediaOptions
+
             Timber.d("Media stream collected from pCast")
         } ?: run {
             Timber.e("Unrecoverable error in PhenixSDK")
@@ -206,10 +254,12 @@ class ChannelExpressRepository(private val context: Application) {
             userMediaStream = null
         }
 
-        channelExpress?.pCastExpress?.getUserMedia(getUserMediaOptions(publishConfiguration))?.run {
+        val userMediaOptions = getUserMediaOptions(publishConfiguration)
+        channelExpress?.pCastExpress?.getUserMedia(userMediaOptions)?.run {
             Timber.d("Created new UserMediaStream: $this")
 
             userMediaStream = this
+            currentUserMediaOptions = userMediaOptions
 
             userMediaRenderer = userMediaStream?.mediaStream?.createRenderer()
             userMediaRenderer?.start(androidVideoSurface)

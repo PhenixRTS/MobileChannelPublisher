@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+  ~ Copyright 2024 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
   -->
 
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -8,133 +8,125 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ScrollView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:padding="8dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/publish_button">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:baselineAligned="false"
+            android:orientation="horizontal"
+            android:padding="4dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="4dp"
-                android:orientation="horizontal"
-                android:baselineAligned="false">
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_spinner"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-                <LinearLayout
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="@null"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_video" />
+
+                <Spinner
+                    android:id="@+id/spinner_camera_facing"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/bg_spinner"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:src="@drawable/ic_video"
-                        android:padding="12dp"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:contentDescription="@null" />
-
-                    <Spinner
-                        android:id="@+id/spinner_camera_facing"
-                        android:entries="@array/camera_facing"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:theme="@style/SpinnerTheme" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/bg_spinner"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:src="@drawable/ic_microphone"
-                        android:padding="12dp"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:contentDescription="@null" />
-
-                    <Spinner
-                        android:id="@+id/spinner_microphone"
-                        android:entries="@array/microphone_settings"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:theme="@style/SpinnerTheme" />
-                </LinearLayout>
+                    android:layout_height="48dp"
+                    android:entries="@array/camera_facing"
+                    android:theme="@style/SpinnerTheme" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="4dp"
-                android:orientation="horizontal"
-                android:baselineAligned="false">
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_spinner"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-                <LinearLayout
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="@null"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_microphone" />
+
+                <Spinner
+                    android:id="@+id/spinner_microphone"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/bg_spinner"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:src="@drawable/ic_frame_rate"
-                        android:padding="12dp"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:contentDescription="@null" />
-
-                    <Spinner
-                        android:id="@+id/spinner_camera_fps"
-                        android:entries="@array/camera_fps"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:theme="@style/SpinnerTheme" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/bg_spinner"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:src="@drawable/ic_echo"
-                        android:padding="12dp"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:contentDescription="@null" />
-
-                    <Spinner
-                        android:id="@+id/spinner_echo_cancellation"
-                        android:entries="@array/echo_cancellation"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:theme="@style/SpinnerTheme" />
-                </LinearLayout>
+                    android:layout_height="48dp"
+                    android:entries="@array/microphone_settings"
+                    android:theme="@style/SpinnerTheme" />
             </LinearLayout>
         </LinearLayout>
-    </ScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal"
+            android:padding="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_spinner"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="@null"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_frame_rate" />
+
+                <Spinner
+                    android:id="@+id/spinner_camera_fps"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:entries="@array/camera_fps"
+                    android:theme="@style/SpinnerTheme" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_spinner"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="@null"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_echo" />
+
+                <Spinner
+                    android:id="@+id/spinner_echo_cancellation"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:entries="@array/echo_cancellation"
+                    android:theme="@style/SpinnerTheme" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
 
     <Button
         android:id="@+id/publish_button"

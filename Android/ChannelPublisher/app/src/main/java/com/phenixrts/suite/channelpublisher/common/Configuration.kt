@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2024 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.common
@@ -7,10 +7,15 @@ package com.phenixrts.suite.channelpublisher.common
 import com.phenixrts.express.ChannelExpressFactory
 import com.phenixrts.express.PCastExpressFactory
 import com.phenixrts.express.PublishToChannelOptions
-import com.phenixrts.pcast.*
-import com.phenixrts.room.RoomServiceFactory
+import com.phenixrts.pcast.AudioEchoCancellationMode
+import com.phenixrts.pcast.AutoFocusMode
+import com.phenixrts.pcast.DeviceCapability
+import com.phenixrts.pcast.DeviceConstraint
+import com.phenixrts.pcast.FacingMode
+import com.phenixrts.pcast.PointDouble
+import com.phenixrts.pcast.UserMediaOptions
+import com.phenixrts.pcast.UserMediaStream
 import com.phenixrts.suite.phenixdeeplinks.models.PhenixDeepLinkConfiguration
-import timber.log.Timber
 
 private val CAMERA_OPTIONS = listOf(FacingMode.USER, FacingMode.ENVIRONMENT, FacingMode.UNDEFINED)
 private val MICROPHONE_OPTIONS = listOf(true, false)
@@ -21,6 +26,7 @@ private val DEFAULT_CAMERA_FACING_OPTION = FacingMode.USER
 private val DEFAULT_MICROPHONE_OPTION = true
 private val DEFAULT_FPS_OPTION = 30
 private val DEFAULT_AEC_OPTION = AudioEchoCancellationMode.ON
+private val DEFAULT_FOCUS_MODE = AutoFocusMode.AUTOMATIC
 
 var selectedCameraFacing = CAMERA_OPTIONS.indexOf(DEFAULT_CAMERA_FACING_OPTION)
 var selectedMicrophoneOption = MICROPHONE_OPTIONS.indexOf(DEFAULT_MICROPHONE_OPTION)
@@ -45,6 +51,27 @@ fun getPublishToChannelOptions(configuration: PhenixDeepLinkConfiguration,
         .buildPublishToChannelOptions()
 }
 
+fun appendFocusTargetToMediaOptions(userMediaOptions: UserMediaOptions, targetPosition: PointDouble) : UserMediaOptions {
+    var newUserMediaOptions = userMediaOptions.copy()
+
+    // Not all focus modes support setting a custom focus target position.
+    // When defining a focus target, make sure to update the focus mode at the same time or before.
+    newUserMediaOptions.videoOptions.capabilityConstraints[DeviceCapability.AUTO_FOCUS_MODE] = listOf(DeviceConstraint(AutoFocusMode.AUTO_THEN_LOCKED))
+    newUserMediaOptions.videoOptions.capabilityConstraints[DeviceCapability.AUTO_FOCUS_TARGET] = listOf(DeviceConstraint(targetPosition))
+
+    return newUserMediaOptions
+}
+
+fun resetFocusMode(userMediaOptions: UserMediaOptions) : UserMediaOptions {
+    var newUserMediaOptions = userMediaOptions.copy()
+
+    // The default focus mode ensures the video is constantly in focus.
+    // If another focus mode was set, it could be that the image stays blurry when the device is moved.
+    newUserMediaOptions.videoOptions.capabilityConstraints[DeviceCapability.AUTO_FOCUS_MODE] = listOf(DeviceConstraint(DEFAULT_FOCUS_MODE))
+
+    return newUserMediaOptions
+}
+
 fun getUserMediaOptions(configuration: PublishConfiguration): UserMediaOptions = UserMediaOptions().apply {
     if (configuration.cameraFacingMode != FacingMode.UNDEFINED) {
         videoOptions.enabled = true
@@ -52,6 +79,7 @@ fun getUserMediaOptions(configuration: PublishConfiguration): UserMediaOptions =
         videoOptions.capabilityConstraints[DeviceCapability.FACING_MODE] = listOf(DeviceConstraint(configuration.cameraFacingMode))
         videoOptions.capabilityConstraints[DeviceCapability.HEIGHT] = listOf(DeviceConstraint(360.0))
         videoOptions.capabilityConstraints[DeviceCapability.FRAME_RATE] = listOf(DeviceConstraint(configuration.cameraFps.toDouble()))
+        videoOptions.capabilityConstraints[DeviceCapability.AUTO_FOCUS_MODE] = listOf(DeviceConstraint(DEFAULT_FOCUS_MODE))
     } else {
         videoOptions.enabled = false
     }
@@ -69,6 +97,7 @@ fun getDefaultUserMediaOptions(): UserMediaOptions = UserMediaOptions().apply {
     videoOptions.capabilityConstraints[DeviceCapability.FACING_MODE] = listOf(DeviceConstraint(DEFAULT_CAMERA_FACING_OPTION))
     videoOptions.capabilityConstraints[DeviceCapability.HEIGHT] = listOf(DeviceConstraint(360.0))
     videoOptions.capabilityConstraints[DeviceCapability.FRAME_RATE] = listOf(DeviceConstraint(DEFAULT_FPS_OPTION.toDouble()))
+    videoOptions.capabilityConstraints[DeviceCapability.AUTO_FOCUS_MODE] = listOf(DeviceConstraint(DEFAULT_FOCUS_MODE))
     audioOptions.enabled = DEFAULT_MICROPHONE_OPTION
     audioOptions.capabilityConstraints[DeviceCapability.AUDIO_ECHO_CANCELLATION_MODE] = listOf(DeviceConstraint(DEFAULT_AEC_OPTION))
 }

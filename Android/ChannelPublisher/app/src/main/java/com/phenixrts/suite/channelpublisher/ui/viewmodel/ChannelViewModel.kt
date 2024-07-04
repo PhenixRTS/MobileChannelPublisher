@@ -1,12 +1,12 @@
 /*
- * Copyright 2023 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2024 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.ui.viewmodel
 
+import android.graphics.Point
 import android.view.SurfaceHolder
 import androidx.lifecycle.ViewModel
-import com.phenixrts.pcast.FacingMode
 import com.phenixrts.suite.channelpublisher.common.PublishConfiguration
 import com.phenixrts.suite.channelpublisher.repositories.ChannelExpressRepository
 import com.phenixrts.suite.phenixcommon.common.launchMain
@@ -38,4 +38,12 @@ class ChannelViewModel(private val channelExpressRepository: ChannelExpressRepos
     }
 
     fun stopPublishing() = channelExpressRepository.stopPublishing()
+
+    fun setFocusTarget(targetPosition: Point) : Boolean {
+        return channelExpressRepository.setFocusTarget(targetPosition)
+    }
+
+    fun resetFocus() {
+        channelExpressRepository.resetFocus();
+    }
 }

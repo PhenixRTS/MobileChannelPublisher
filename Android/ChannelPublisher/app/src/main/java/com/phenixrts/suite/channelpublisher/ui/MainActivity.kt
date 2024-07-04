@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2024 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.ui
@@ -13,9 +13,21 @@ import com.phenixrts.pcast.FacingMode
 import com.phenixrts.suite.channelpublisher.BuildConfig
 import com.phenixrts.suite.channelpublisher.ChannelPublisherApplication
 import com.phenixrts.suite.channelpublisher.R
-import com.phenixrts.suite.channelpublisher.common.*
+import com.phenixrts.suite.channelpublisher.common.PublishConfiguration
 import com.phenixrts.suite.channelpublisher.common.enums.ExpressError
 import com.phenixrts.suite.channelpublisher.common.enums.StreamStatus
+import com.phenixrts.suite.channelpublisher.common.getCameraFacing
+import com.phenixrts.suite.channelpublisher.common.getCameraFps
+import com.phenixrts.suite.channelpublisher.common.getEchoCancellation
+import com.phenixrts.suite.channelpublisher.common.getMicrophoneEnabled
+import com.phenixrts.suite.channelpublisher.common.lazyViewModel
+import com.phenixrts.suite.channelpublisher.common.onSelectionChanged
+import com.phenixrts.suite.channelpublisher.common.selectedAecOption
+import com.phenixrts.suite.channelpublisher.common.selectedCameraFacing
+import com.phenixrts.suite.channelpublisher.common.selectedFpsOption
+import com.phenixrts.suite.channelpublisher.common.selectedMicrophoneOption
+import com.phenixrts.suite.channelpublisher.common.showErrorDialog
+import com.phenixrts.suite.channelpublisher.common.showSnackBar
 import com.phenixrts.suite.channelpublisher.databinding.ActivityMainBinding
 import com.phenixrts.suite.channelpublisher.repositories.ChannelExpressRepository
 import com.phenixrts.suite.channelpublisher.ui.viewmodel.ChannelViewModel
@@ -42,6 +54,16 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         initializeDropDowns()
+
+        binding.focusHandler.setFocusResetMethod { viewModel.resetFocus() }
+
+        launchMain {
+            binding.focusHandler.touchFlow.collect { position ->
+                if (viewModel.setFocusTarget(position)) {
+                    binding.focusHandler.showFocusPosition(position)
+                }
+            }
+        }
 
         launchMain {
             viewModel.onChannelExpressError.collect { error ->

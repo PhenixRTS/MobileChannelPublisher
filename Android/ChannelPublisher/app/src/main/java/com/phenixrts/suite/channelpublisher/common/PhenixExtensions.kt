@@ -1,11 +1,14 @@
 /*
- * Copyright 2023 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2024 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.channelpublisher.common
 
 import com.phenixrts.common.RequestStatus
-import com.phenixrts.express.*
+import com.phenixrts.express.ChannelExpress
+import com.phenixrts.express.ExpressPublisher
+import com.phenixrts.express.PCastExpress
+import com.phenixrts.express.PublishToChannelOptions
 import com.phenixrts.pcast.PCast
 import com.phenixrts.pcast.UserMediaOptions
 import com.phenixrts.pcast.UserMediaStream
@@ -57,3 +60,19 @@ data class PublishState(
     val roomService: RoomService? = null,
     val publisher: ExpressPublisher? = null
 )
+
+fun UserMediaOptions.copy() : UserMediaOptions {
+    var newUserMediaOptions = UserMediaOptions()
+
+     newUserMediaOptions.videoOptions.enabled = videoOptions.enabled
+     videoOptions.capabilityConstraints.forEach { constraint ->
+         newUserMediaOptions.videoOptions.capabilityConstraints[constraint.key] = constraint.value
+     }
+
+     newUserMediaOptions.audioOptions.enabled = audioOptions.enabled
+     audioOptions.capabilityConstraints.forEach { constraint ->
+         newUserMediaOptions.audioOptions.capabilityConstraints[constraint.key] = constraint.value
+     }
+
+     return newUserMediaOptions
+}
