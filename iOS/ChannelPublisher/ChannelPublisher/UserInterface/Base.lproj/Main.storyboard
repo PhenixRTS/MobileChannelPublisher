@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22504"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22684"/>
+        <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -163,6 +164,11 @@
                                 <rect key="frame" x="197" y="445" width="20" height="20"/>
                                 <color key="color" systemColor="labelColor"/>
                             </activityIndicatorView>
+                            <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="TLa-ef-DiE" userLabel="Focus Point Image">
+                                <rect key="frame" x="150" y="488" width="80" height="80"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <imageReference key="image" image="camerafocus" renderingMode="template"/>
+                            </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -185,6 +191,7 @@
                         <outlet property="activityIndicatorView" destination="an7-qJ-qiV" id="6Rk-Eg-cTo"/>
                         <outlet property="audioEchoCancellationButton" destination="5Ey-q5-LRY" id="k65-hb-Mqu"/>
                         <outlet property="cameraButton" destination="yjr-mT-b0t" id="sQb-pN-ZU9"/>
+                        <outlet property="focusPointImage" destination="TLa-ef-DiE" id="SB5-nH-NW1"/>
                         <outlet property="frameRateButton" destination="Rd9-Oh-Lbh" id="md3-ef-MIq"/>
                         <outlet property="microphoneButton" destination="lZN-JC-R0E" id="UAX-Hf-7Xw"/>
                         <outlet property="startBroadcastButton" destination="vsF-iG-mxw" id="hZJ-9P-irY"/>
@@ -203,6 +210,7 @@
     </scenes>
     <resources>
         <image name="camera" width="16" height="12"/>
+        <image name="camerafocus" width="1268" height="1268"/>
         <image name="ear" width="10" height="14"/>
         <image name="mic" width="9" height="14"/>
         <image name="square.stack" width="12" height="15"/>
@@ -213,10 +221,13 @@
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemGreenColor">
-            <color red="0.20392156859999999" green="0.78039215689999997" blue="0.34901960780000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.20392156862745098" green="0.7803921568627451" blue="0.34901960784313724" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemRedColor">
-            <color red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="0.23137254901960785" blue="0.18823529411764706" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+        <systemColor name="systemYellowColor">
+            <color red="1" green="0.80000000000000004" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

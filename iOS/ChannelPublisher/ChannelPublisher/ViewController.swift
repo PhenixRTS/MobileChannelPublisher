@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+//  Copyright 2024 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
 //
 
 import PhenixDebug
@@ -18,6 +18,7 @@ class ViewController: UIViewController {
     @IBOutlet private var frameRateButton: UIButton!
     @IBOutlet private var microphoneButton: UIButton!
     @IBOutlet private var audioEchoCancellationButton: UIButton!
+    @IBOutlet private var focusPointImage: UIImageView!
 
     private lazy var channelPublisher: PhenixChannelPublisher = {
         let publisher = PhenixChannelPublisher(channelExpress: AppDelegate.channelExpress)
@@ -28,6 +29,8 @@ class ViewController: UIViewController {
     private var currentRoomService: PhenixRoomService?
     private var currentExpressPublisher: PhenixExpressPublisher?
     private var userMediaStreamController: UserMediaStreamController?
+
+    private var focusImageHideDispatch : DispatchWorkItem?
 
     // MARK: Configurable parameters
     private var userMediaConfiguration = UserMediaConfiguration.default
@@ -50,6 +53,11 @@ class ViewController: UIViewController {
             }
             return
         }
+
+        // Configure tap gesture to focus (one tap)
+        let focusTapGesture = UITapGestureRecognizer(target: self, action: #selector(surfaceViewTappedOnce))
+        focusTapGesture.numberOfTapsRequired = 1
+        surfaceView.addGestureRecognizer(focusTapGesture)
 
         // Configure tap gesture to open debug menu, when user taps 5 times on the video surface view.
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(surfaceViewTappedMultipleTimes))
@@ -148,6 +156,32 @@ class ViewController: UIViewController {
         present(vc, animated: true)
     }
 
+    @objc func surfaceViewTappedOnce(tapGesture: UITapGestureRecognizer) {
+        let locationInView = tapGesture.location(in: surfaceView)
+
+        let focusRelativePoint = userMediaStreamController?.renderer.convertRenderPreviewCoordinatesToSourceCoordinates(locationInView)
+
+        if setFocus(focusRelativePoint!) {
+            focusImageHideDispatch?.cancel()
+
+            focusPointImage.isHidden = false
+            focusPointImage.center = locationInView
+
+            // Animate the icon with a zoom in.
+            focusPointImage.transform = CGAffineTransformScale(CGAffineTransformIdentity, 2.0, 2.0);
+            UIView.animate(withDuration: 0.5) {
+                self.focusPointImage.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1.0, 1.0);
+            }
+
+            // Auto-hide the icon after a delay.
+            // If focusing somewhere else meanwhile, the counter will be reinitialized.
+            focusImageHideDispatch = DispatchWorkItem(block: { [weak self] in
+                self?.focusPointImage.isHidden = true
+            })
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: focusImageHideDispatch!)
+        }
+    }
+
     // MARK: - Private methods
 
     private func createUserMediaController(with userMediaStream: PhenixUserMediaStream) {
@@ -232,6 +266,30 @@ class ViewController: UIViewController {
                 message: "Could not set audio echo cancellation configuration."
             )
         }
+    }
+
+    // Returns true if the focus point could be set. There are many reasons to fail,the most common would be
+    // that the camera does not support it (the front camera of an iPhone does not support setting a focus point).
+    private func setFocus(_ focusPoint: CGPoint) -> Bool {
+        if userMediaConfiguration.camera == .off  {
+            return false
+        }
+
+        userMediaConfiguration.focusPoint = focusPoint
+
+        defer {
+            // Reset the saved focus point to avoid setting a new focus point if any other parameter is changed.
+            userMediaConfiguration.focusPoint = nil
+        }
+
+        do {
+            try userMediaStreamController?.update(configuration: userMediaConfiguration)
+        } catch {
+            print("Cannot set focus to position [\(focusPoint)] on current video device")
+            return false
+        }
+
+        return true
     }
 }
 

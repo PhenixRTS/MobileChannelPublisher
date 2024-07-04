@@ -10,6 +10,7 @@ public struct UserMediaConfiguration {
     public var frameHeight: Double = 360
     public var microphone: PublishOption.Microphone
     public var audioEchoCancellation: PublishOption.AudioEchoCancellation
+    public var focusPoint: CGPoint?
 
     public func makeOptions() -> PhenixUserMediaOptions {
         let options = PhenixUserMediaOptions()
@@ -20,6 +21,10 @@ public struct UserMediaConfiguration {
 
         if let fps = frameRate {
             options.video.capabilityConstraints[PhenixDeviceCapability.frameRate.rawValue] = [PhenixDeviceConstraint.initWith(fps.rawValue)]
+        }
+
+        if let focusPoint = focusPoint {
+            options.video.capabilityConstraints[PhenixDeviceCapability.autoFocusTarget.rawValue] = [PhenixDeviceConstraint.initWith(focusPoint)]
         }
 
         options.audio.enabled = microphone.value

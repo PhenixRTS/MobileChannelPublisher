@@ -1,11 +1,11 @@
 //
-//  Copyright 2023 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+//  Copyright 2024 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
 //
 
 import PhenixSdk
 
 public struct UserMediaStreamController {
-    private let renderer: PhenixRenderer
+    public let renderer: PhenixRenderer
 
     public private(set) var userMediaStream: PhenixUserMediaStream
 
